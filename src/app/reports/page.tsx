@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { BarChart3, CalendarIcon, Download, FileSpreadsheet, FileText } from 'lucide-react';
+import DatePicker from '@/components/form/date-picker';
 import reportsService from '@/services/reports.service';
 import { saveAs } from 'file-saver';
 import { useState } from 'react';
@@ -33,12 +34,19 @@ function ReportsPage() {
       <Card className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Filtres</h3>
         <div className="flex flex-wrap gap-4">
-          <div className="space-y-2">
+          <div className="space-y-2 min-w-[260px]">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Période</label>
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm">
-              <CalendarIcon className="h-4 w-4" />
-              {format(dateRange.from, 'dd MMM yyyy', { locale: fr })} - {format(dateRange.to, 'dd MMM yyyy', { locale: fr })}
-            </button>
+            <DatePicker
+              id="reports-period"
+              mode="range"
+              defaultDate={[dateRange.from, dateRange.to]}
+              onChange={(selectedDates: Date[]) => {
+                const from = selectedDates && selectedDates[0] ? selectedDates[0] : dateRange.from;
+                const to = selectedDates && selectedDates[1] ? selectedDates[1] : (selectedDates && selectedDates[0] ? selectedDates[0] : dateRange.to);
+                setDateRange({ from, to });
+              }}
+              placeholder="Sélectionnez une période"
+            />
           </div>
 
           <div className="space-y-2">

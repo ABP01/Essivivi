@@ -52,7 +52,12 @@ export default function DatePicker({
         />
 
         <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
-          <CalenderIcon className="size-6" />
+          {/* Some SVG imports are exported as image objects (with .src). Render an <img> when that's the case. */}
+          {typeof CalenderIcon === 'string' ? (
+            <img src={CalenderIcon} alt="calendar" className="h-6 w-6" />
+          ) : (
+            <img src={(CalenderIcon as any)?.src || ''} alt="calendar" className="h-6 w-6" />
+          )}
         </span>
       </div>
     </div>

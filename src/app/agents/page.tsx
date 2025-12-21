@@ -8,10 +8,12 @@ import { useEffect, useState } from 'react';
 import usersService from '@/services/users.service';
 import { cn } from '@/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
-import { Edit, Eye, Mail, Phone, Plus, Trash2, Truck } from 'lucide-react';
+import { Edit, Eye, Mail, Phone, Plus, Trash2, Truck, Download } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import CreateAgentModal from '@/components/essivi/modals/CreateAgentModal';
+import reportsService from '@/services/reports.service';
+import { saveAs } from 'file-saver';
 
 const statusConfig = {
   active: { label: 'Actif', class: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
@@ -268,7 +270,16 @@ function AgentsPage() {
         columns={columns}
         data={agents}
         searchPlaceholder="Rechercher un agent..."
-        onExport={() => console.log('Export agents')}
+        onExport={async () => {
+          try {
+            const blob = await reportsService.export('csv');
+            const file = new Blob([blob], { type: 'text/csv;charset=utf-8' });
+            saveAs(file, `agents-${new Date().toISOString().slice(0,10)}.csv`);
+          } catch (err) {
+            console.error('export agents failed', err);
+            alert('Impossible d\'exporter la liste des agents.');
+          }
+        }}
         loading={loading}
       />
     </div>

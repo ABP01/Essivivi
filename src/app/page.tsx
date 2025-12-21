@@ -9,10 +9,12 @@ export default function EssiviPage() {
   useEffect(() => {
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+      const defaultLanding = (process?.env?.NEXT_PUBLIC_DEFAULT_LANDING === 'signup') ? '/signup' : '/login';
       if (token) router.replace('/dashboard');
-      else router.replace('/login');
+      else router.replace(defaultLanding);
     } catch (e) {
-      router.replace('/login');
+      const defaultLanding = (process?.env?.NEXT_PUBLIC_DEFAULT_LANDING === 'signup') ? '/signup' : '/login';
+      router.replace(defaultLanding);
     }
   }, [router]);
 
