@@ -27,6 +27,7 @@
     "@types/leaflet": "^1.9.21",
     "apexcharts": "^4.7.0",
     "autoprefixer": "^10.4.22",
+    "axios": "^1.13.2",
     "chart.js": "^4.5.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -46,7 +47,8 @@
     "react-leaflet": "^5.0.0",
     "recharts": "^3.5.1",
     "swiper": "^11.2.10",
-    "tailwind-merge": "^2.6.0"
+    "tailwind-merge": "^2.6.0",
+    "file-saver": "^2.0.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

@@ -1,5 +1,6 @@
 "use client";
 
+import RequireAuth from '@/components/auth/RequireAuth';
 import dynamic from 'next/dynamic';
 
 const MapComponent = dynamic(
@@ -14,6 +15,14 @@ const MapComponent = dynamic(
   }
 );
 
-export default function MapPage() {
+function MapPage() {
   return <MapComponent />;
+}
+
+export default function ProtectedMapPage() {
+  return (
+    <RequireAuth>
+      <MapPage />
+    </RequireAuth>
+  );
 }

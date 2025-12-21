@@ -2,7 +2,7 @@ import Image from "next/image";
 import React from "react";
 
 interface AvatarProps {
-  src: string; // URL of the avatar image
+  src?: string; // URL of the avatar image
   alt?: string; // Alt text for the avatar
   size?: "xsmall" | "small" | "medium" | "large" | "xlarge" | "xxlarge"; // Avatar size
   status?: "online" | "offline" | "busy" | "none"; // Status indicator
@@ -41,14 +41,22 @@ const Avatar: React.FC<AvatarProps> = ({
   return (
     <div className={`relative  rounded-full ${sizeClasses[size]}`}>
       {/* Avatar Image */}
-      <Image
-        width="0"
-        height="0"
-        sizes="100vw"
-        src={src}
-        alt={alt}
-        className="object-cover w-full rounded-full"
-      />
+      {src ? (
+        <Image
+          width="0"
+          height="0"
+          sizes="100vw"
+          src={src}
+          alt={alt}
+          className="object-cover w-full rounded-full"
+        />
+      ) : (
+        <div className={`w-full h-full bg-gray-100 rounded-full flex items-center justify-center text-gray-400`}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 2a4 4 0 100 8 4 4 0 000-8zM2 18a8 8 0 1116 0H2z" />
+          </svg>
+        </div>
+      )}
 
       {/* Status Indicator */}
       {status !== "none" && (

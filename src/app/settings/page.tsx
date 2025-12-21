@@ -1,10 +1,11 @@
 "use client";
 
+import RequireAuth from '@/components/auth/RequireAuth';
 import { Card } from '@/components/ui/card';
 import { Bell, Building2, Globe, MapPin, Save, Shield } from 'lucide-react';
 import { useState } from 'react';
 
-export default function SettingsPage() {
+function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'delivery' | 'security'>('general');
 
   return (
@@ -222,5 +223,14 @@ export default function SettingsPage() {
         </button>
       </div>
     </div>
+  );
+
+}
+
+export default function ProtectedSettingsPage() {
+  return (
+    <RequireAuth>
+      <SettingsPage />
+    </RequireAuth>
   );
 }

@@ -3,18 +3,22 @@
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Truck } from 'lucide-react';
-import { deliveryData } from '@/lib/mock-data/dashboard';
+
 
 // Enregistrer les composants nécessaires de Chart.js
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-export function DeliveryBarChart() {
+export interface DeliveryBarChartProps {
+  data: Array<{ day: string; deliveries: number }>;
+}
+
+export function DeliveryBarChart({ data: chartData }: DeliveryBarChartProps) {
   const data = {
-    labels: deliveryData.map(item => item.day),
+    labels: chartData.map(item => item.day),
     datasets: [
       {
         label: 'Livraisons',
-        data: deliveryData.map(item => item.deliveries),
+        data: chartData.map(item => item.deliveries),
         backgroundColor: 'rgba(79, 70, 229, 0.7)',
         borderRadius: 4,
         barThickness: 20,

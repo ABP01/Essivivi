@@ -1,9 +1,10 @@
 'use client';
 
 import { User, CheckCircle, Clock, PauseCircle, XCircle } from 'lucide-react';
-import { agentActivity } from '@/lib/mock-data/dashboard';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
+import usersService from '@/services/users.service';
 
 const statusIcons = {
   'Actif': <CheckCircle className="h-3.5 w-3.5 text-green-500" />,
@@ -12,17 +13,32 @@ const statusIcons = {
 };
 
 export function AgentActivity() {
+  const [agents, setAgents] = useState<any[]>([]);
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const resp = await usersService.getAgents();
+        if (!mounted) return;
+        if (Array.isArray(resp)) setAgents(resp.slice(0, 8));
+      } catch (e) {
+        // keep empty
+      }
+    })();
+    return () => { mounted = false };
+  }, []);
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white">Activité des agents</h3>
       </div>
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
-        {agentActivity.map((agent) => (
-          <div key={agent.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+        {agents.map((a) => (
+          <div key={a.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50">
             <div className="flex items-center">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={`/avatars/agent-${agent.id}.jpg`} alt={agent.name} />
+                <AvatarImage src={a.photoUrl || `/avatars/${a.id}.jpg`} alt={`${a.firstname} ${a.lastname}`} />
                 <AvatarFallback className="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400">
                   <User className="h-5 w-5" />
                 </AvatarFallback>
@@ -30,17 +46,17 @@ export function AgentActivity() {
               <div className="ml-4 flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                    {agent.name}
+                    {a.firstname} {a.lastname}
                   </p>
                   <div className="flex items-center">
                     <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">
-                      {agent.deliveries} livraisons
+                      {a.totalDeliveries ?? 0} livraisons
                     </span>
                     <div className="flex items-center">
                       <svg
                         className={cn(
                           'h-3.5 w-3.5',
-                          agent.rating >= 4 ? 'text-yellow-400' : 'text-gray-300',
+                          (a.rating ?? 4) >= 4 ? 'text-yellow-400' : 'text-gray-300',
                         )}
                         fill="currentColor"
                         viewBox="0 0 20 20"
@@ -49,7 +65,7 @@ export function AgentActivity() {
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                       </svg>
                       <span className="ml-1 text-xs text-gray-600 dark:text-gray-300">
-                        {agent.rating}
+                        {a.rating ?? 4}
                       </span>
                     </div>
                   </div>
@@ -57,12 +73,12 @@ export function AgentActivity() {
                 <div className="mt-1 flex items-center">
                   <span className={cn(
                     'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
-                    agent.status === 'Actif' ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-400' :
-                    agent.status === 'En pause' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-400' :
+                    a.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-400' :
+                    a.status === 'on_delivery' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-400' :
                     'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-400'
                   )}>
-                    {statusIcons[agent.status as keyof typeof statusIcons]}
-                    <span className="ml-1">{agent.status}</span>
+                    {a.status === 'active' ? <CheckCircle className="h-3.5 w-3.5 text-green-500" /> : a.status === 'on_delivery' ? <Clock className="h-3.5 w-3.5 text-blue-500" /> : <XCircle className="h-3.5 w-3.5 text-red-500" />}
+                    <span className="ml-1 capitalize">{a.status}</span>
                   </span>
                 </div>
               </div>

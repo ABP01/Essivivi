@@ -3,7 +3,8 @@ import { MoreDotIcon } from "@/icons";
 import { revenueChartData } from "@/lib/essivi-mock";
 import { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { dashboardService } from "@/services/dashboard.service";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 
@@ -13,6 +14,25 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
 });
 
 export default function MonthlySalesChart() {
+  const [chartData, setChartData] = useState<any[]>(revenueChartData);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const stats = await dashboardService.getStats();
+        if (!mounted) return;
+        const revenue = stats?.charts?.revenue;
+        if (revenue && revenue.length) {
+          setChartData(revenue as any[]);
+        }
+      } catch (e) {
+        // fallback to mock
+      }
+    })();
+    return () => { mounted = false };
+  }, []);
+
   const options: ApexOptions = {
     colors: ["#465fff"],
     chart: {
@@ -40,7 +60,7 @@ export default function MonthlySalesChart() {
       colors: ["transparent"],
     },
     xaxis: {
-      categories: revenueChartData.map(d => d.month),
+      categories: chartData.map(d => d.month),
       axisBorder: {
         show: false,
       },
@@ -82,7 +102,7 @@ export default function MonthlySalesChart() {
   const series = [
     {
       name: "Livraisons",
-      data: revenueChartData.map(d => d.deliveries),
+      data: chartData.map(d => d.deliveries ?? d.deliveries_count ?? d.deliveriesCount ?? 0),
     },
   ];
   const [isOpen, setIsOpen] = useState(false);

@@ -1,12 +1,20 @@
 "use client";
 
+import RequireAuth from '@/components/auth/RequireAuth';
 import { DataTable } from '@/components/essivi/ui/DataTable';
 import { Badge } from '@/components/ui/badge';
 import { Client, mockClients } from '@/lib/essivi-mock';
 import { cn } from '@/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import { Mail, MapPin, Phone, Plus, Store } from 'lucide-react';
-import { useState } from 'react';
+import { Edit, Eye, Trash2 } from 'lucide-react';
+import reportsService from '@/services/reports.service';
+import { saveAs } from 'file-saver';
+import { useEffect, useState } from 'react';
+import usersService from '@/services/users.service';
+import { authService } from '@/services/auth.service';
+import { useRouter } from 'next/navigation';
+import CreateClientModal from '@/components/essivi/modals/CreateClientModal';
 
 const typeConfig = {
   boutique: { label: 'Boutique', class: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
@@ -16,8 +24,70 @@ const typeConfig = {
   entreprise: { label: 'Entreprise', class: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
 };
 
-export default function ClientsPage() {
+function ClientsPage() {
+  const router = useRouter();
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      setLoading(true);
+      try {
+        const data = await usersService.getClients();
+        if (mounted && Array.isArray(data)) {
+          // dedupe by sensible key (prefer id, then email, phone, code) and keep the most complete record
+          const map = new Map<string, Client>();
+          const keyOf = (c: any) => c?.id || c?.email || c?.phone || c?.code || (c?.storeName ? `store:${c.storeName}` : null) || JSON.stringify(c || {});
+          const completeness = (c: any) => Object.values(c || {}).filter(v => v !== null && v !== undefined && String(v).trim() !== '').length;
+          data.forEach((c: Client) => {
+            if (!c) return;
+            // normalize variant field names returned by API
+            const normalized = {
+              ...c,
+              storeName: c.storeName || c.store_name || c.nom_point_vente || c.company || c.name,
+              ownerName: (c.ownerName || c.owner_name || c.owner || (c.user && (c.user.username || `${c.user.first_name || ''} ${c.user.last_name || ''}`))) ,
+              phone: c.phone || c.phone_number || (c.user && c.user.phone_number) || c.contact || '',
+              email: c.email || (c.user && c.user.email) || '',
+              address: c.address || c.adresse || (c.user && c.user.address) || '',
+            };
+            const k = keyOf(normalized);
+            const existing = map.get(k);
+            if (!existing) map.set(k, normalized);
+            else if (completeness(normalized) > completeness(existing)) map.set(k, normalized);
+          });
+          setClients(Array.from(map.values()));
+        }
+      } catch (e) {
+        // fallback to mocks
+        // dedupe mock data as well using same logic
+        const map = new Map<string, Client>();
+        const keyOf = (c: any) => c?.id || c?.email || c?.phone || c?.code || (c?.storeName ? `store:${c.storeName}` : null) || JSON.stringify(c || {});
+        const completeness = (c: any) => Object.values(c || {}).filter(v => v !== null && v !== undefined && String(v).trim() !== '').length;
+        mockClients.forEach((c: Client) => {
+          // ensure mock entry is normalized similarly
+          const normalized = {
+            ...c,
+            storeName: c.storeName || c.store_name || c.nom_point_vente || c.company || c.name,
+            ownerName: c.ownerName || c.owner_name || c.owner || (c.user && (c.user.username || `${c.user.first_name || ''} ${c.user.last_name || ''}`)) || '',
+            phone: c.phone || c.phone_number || (c.user && c.user.phone_number) || c.contact || '',
+            email: c.email || (c.user && c.user.email) || '',
+            address: c.address || c.adresse || (c.user && c.user.address) || '',
+          };
+          const k = keyOf(normalized);
+          const existing = map.get(k);
+          if (!existing) map.set(k, normalized);
+          else if (completeness(normalized) > completeness(existing)) map.set(k, normalized);
+        });
+        setClients(Array.from(map.values()));
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    load();
+    return () => { mounted = false };
+  }, []);
 
   const columns: ColumnDef<Client>[] = [
     {
@@ -25,25 +95,31 @@ export default function ClientsPage() {
       header: 'Client',
       cell: ({ row }) => {
         const client = row.original;
+        // prefer storeName, otherwise fallback to ownerName or code
+        const title = client.storeName || client.ownerName || client.code || 'Client';
+        // owner display: try several possible fields returned by API (cast to any for legacy API fields)
+        const owner = (client as any).ownerName || (client as any).owner_name || (client as any).owner || '';
+        const contact = client.phone || client.email || '';
+        const typeLabel = (client.type && typeConfig[client.type]) ? typeConfig[client.type].label : (client.type || '');
+
         return (
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+            <div className="relative h-10 w-10 rounded-lg overflow-hidden bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
               <Store className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
-            <div>
-              <p className="font-medium text-gray-900 dark:text-white">{client.storeName}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{client.code}</p>
+            <div className="min-w-0">
+              <p className="font-medium text-gray-900 dark:text-white">{title}</p>
+              <div className="text-sm text-gray-500 dark:text-gray-400 flex flex-col sm:flex-row sm:items-center sm:gap-3">
+                {owner ? <span className="truncate">{owner}</span> : null}
+                {owner && contact ? <span className="hidden sm:inline">•</span> : null}
+                {contact ? <span className="truncate">{contact}</span> : null}
+                {((owner || contact) && typeLabel) ? <span className="hidden sm:inline">•</span> : null}
+                {typeLabel ? <span className="truncate">{typeLabel}</span> : null}
+              </div>
             </div>
           </div>
         );
       },
-    },
-    {
-      accessorKey: 'ownerName',
-      header: 'Propriétaire',
-      cell: ({ row }) => (
-        <span className="text-gray-900 dark:text-white">{row.original.ownerName}</span>
-      ),
     },
     {
       accessorKey: 'contact',
@@ -52,11 +128,11 @@ export default function ClientsPage() {
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
             <Phone className="h-3 w-3 text-gray-400" />
-            {row.original.phone}
+            {row.original.phone || '—'}
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
             <Mail className="h-3 w-3" />
-            {row.original.email}
+            {row.original.email || '—'}
           </div>
         </div>
       ),
@@ -65,33 +141,53 @@ export default function ClientsPage() {
       accessorKey: 'address',
       header: 'Adresse',
       cell: ({ row }) => (
-        <div className="flex items-center gap-2 max-w-48">
-          <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
-          <span className="truncate text-gray-700 dark:text-gray-300">{row.original.address}</span>
+        <div className="flex items-center gap-2 text-sm text-gray-900 dark:text-white">
+          <MapPin className="h-3 w-3 text-gray-400" />
+          <span className="truncate">{row.original.address || '—'}</span>
         </div>
       ),
     },
     {
-      accessorKey: 'type',
-      header: 'Type',
-      cell: ({ row }) => {
-        const type = row.original.type;
-        return (
-          <Badge className={cn('text-xs font-medium', typeConfig[type].class)}>
-            {typeConfig[type].label}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: 'totalOrders',
-      header: 'Commandes',
+      id: 'actions',
       cell: ({ row }) => (
-        <span className="font-semibold text-gray-900 dark:text-white">{row.original.totalOrders}</span>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => router.push(`/clients/${row.original.id}`)}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 hover:text-gray-700"
+            title="Voir détails"
+          >
+            <Eye className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => router.push(`/clients/${row.original.id}/edit`)}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 hover:text-gray-700"
+            title="Modifier"
+          >
+            <Edit className="h-4 w-4" />
+          </button>
+          <button
+            onClick={async () => {
+              const ok = window.confirm(`Supprimer le client ${row.original.storeName || row.original.ownerName || row.original.email || row.original.id} ?`);
+              if (!ok) return;
+              const prev = clients;
+              try {
+                setClients(prev => prev.filter(c => c.id !== row.original.id));
+                await usersService.deleteClient(row.original.id);
+              } catch (err) {
+                setClients(prev);
+                console.error('delete client failed', err);
+                alert('Impossible de supprimer le client.');
+              }
+            }}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-red-500 hover:text-red-700"
+            title="Supprimer"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
       ),
     },
   ];
-
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -113,12 +209,77 @@ export default function ClientsPage() {
       </div>
 
       {/* Data Table */}
+      {/* Only show rows that have meaningful data; otherwise let DataTable show the global "Aucun résultat." row like Agents page */}
       <DataTable
         columns={columns}
-        data={mockClients}
+        data={clients}
         searchPlaceholder="Rechercher un client..."
-        onExport={() => console.log('Export clients')}
+        onExport={async () => {
+          try {
+            // default to CSV export for clients list
+            const blob = await reportsService.export('csv');
+            const file = new Blob([blob], { type: 'text/csv;charset=utf-8' });
+            saveAs(file, `clients-${new Date().toISOString().slice(0,10)}.csv`);
+          } catch (err) {
+            console.error('export failed', err);
+            alert('Impossible d\'exporter les clients.');
+          }
+        }}
+        loading={loading}
+        visibleColumnIds={['client', 'contact', 'address', 'actions']}
+      />
+
+      <CreateClientModal
+        open={isAddOpen}
+        onOpenChange={(o) => setIsAddOpen(o)}
+        onCreated={(resp) => {
+          const user = resp?.user || {};
+          const ownerName = resp?.ownerName || resp?.owner_name || resp?.nom_proprietaire || resp?.owner || user?.username || resp?.username || resp?.name || '';
+          const phone = resp?.phone || resp?.phone_number || user?.phone || user?.phone_number || '';
+          const email = resp?.email || user?.email || '';
+          const address = resp?.address || resp?.adresse || resp?.location || user?.address || '';
+          const storeName = resp?.storeName || resp?.store_name || resp?.nom_point_vente || resp?.company || user?.username || resp?.username || 'Client';
+          const newClient: any = {
+            id: resp?.id || resp?.username || `client-${Date.now()}`,
+            code: resp?.code || `CLI-${String(Date.now()).slice(-5)}`,
+            storeName,
+            ownerName,
+            phone,
+            email,
+            address,
+            lat: resp?.lat ?? resp?.gps_lat ?? resp?.gpsLat ?? 0,
+            lng: resp?.lng ?? resp?.gps_lng ?? resp?.gpsLng ?? 0,
+            type: resp?.type || '',
+            totalOrders: resp?.totalOrders || 0,
+            lastOrderDate: resp?.lastOrderDate || new Date().toISOString(),
+          };
+          setClients(prev => {
+            // insert new client but avoid adding placeholder duplicates: use same key logic
+            const keyOf = (c: any) => c?.id || c?.email || c?.phone || c?.code || (c?.storeName ? `store:${c.storeName}` : null) || JSON.stringify(c || {});
+            const completeness = (c: any) => Object.values(c || {}).filter(v => v !== null && v !== undefined && String(v).trim() !== '').length;
+            const map = new Map<string, any>();
+            // start with new client
+            map.set(keyOf(newClient), newClient);
+            // merge existing
+            prev.forEach(p => {
+              const k = keyOf(p);
+              const ex = map.get(k);
+              if (!ex) map.set(k, p);
+              else if (completeness(p) > completeness(ex)) map.set(k, p);
+            });
+            return Array.from(map.values());
+          });
+        }}
       />
     </div>
+  );
+
+}
+
+export default function ProtectedClientsPage() {
+  return (
+    <RequireAuth>
+      <ClientsPage />
+    </RequireAuth>
   );
 }

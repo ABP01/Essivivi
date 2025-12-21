@@ -1,13 +1,17 @@
 "use client";
 
+import RequireAuth from '@/components/auth/RequireAuth';
 import { DeliveryBarChart, DeliveryDonutChart, RevenueChart } from '@/components/essivi/dashboard';
+import { revenueChartData } from '@/lib/essivi-mock';
 import { Card } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { BarChart3, CalendarIcon, Download, FileSpreadsheet, FileText } from 'lucide-react';
+import reportsService from '@/services/reports.service';
+import { saveAs } from 'file-saver';
 import { useState } from 'react';
 
-export default function ReportsPage() {
+function ReportsPage() {
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
     from: new Date(new Date().setMonth(new Date().getMonth() - 1)),
     to: new Date(),
@@ -69,7 +73,18 @@ export default function ReportsPage() {
               <h3 className="font-semibold text-gray-900 dark:text-white">Export Excel</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">Données complètes</p>
             </div>
-            <button className="p-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+            <button
+              onClick={async () => {
+                try {
+                  const blob = await reportsService.export('excel', { from: dateRange.from.toISOString(), to: dateRange.to.toISOString() });
+                  saveAs(blob, `reports_${format(dateRange.from, 'yyyyMMdd')}_${format(dateRange.to, 'yyyyMMdd')}.xlsx`);
+                } catch (err) {
+                  // fallback: generate CSV from available data
+                  alert('Export Excel unavailable from server. Essayez Export CSV.');
+                }
+              }}
+              className="p-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
               <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             </button>
           </div>
@@ -84,7 +99,17 @@ export default function ReportsPage() {
               <h3 className="font-semibold text-gray-900 dark:text-white">Export PDF</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">Rapport formaté</p>
             </div>
-            <button className="p-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+            <button
+              onClick={async () => {
+                try {
+                  const blob = await reportsService.export('pdf', { from: dateRange.from.toISOString(), to: dateRange.to.toISOString() });
+                  saveAs(blob, `report_${format(dateRange.from, 'yyyyMMdd')}_${format(dateRange.to, 'yyyyMMdd')}.pdf`);
+                } catch (err) {
+                  alert('Export PDF non disponible depuis le serveur.');
+                }
+              }}
+              className="p-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
               <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             </button>
           </div>
@@ -99,7 +124,21 @@ export default function ReportsPage() {
               <h3 className="font-semibold text-gray-900 dark:text-white">Export CSV</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">Données brutes</p>
             </div>
-            <button className="p-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+            <button
+              onClick={async () => {
+                try {
+                  const blob = await reportsService.export('csv', { from: dateRange.from.toISOString(), to: dateRange.to.toISOString() });
+                  saveAs(blob, `reports_${format(dateRange.from, 'yyyyMMdd')}_${format(dateRange.to, 'yyyyMMdd')}.csv`);
+                } catch (err) {
+                  // fallback: generate CSV from client data (using revenueChartData)
+                  const rows = [['month', 'revenue', 'deliveries'], ...revenueChartData.map(r => [r.month, String(r.revenue), String(r.deliveries)])];
+                  const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
+                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                  saveAs(blob, `reports_${format(dateRange.from, 'yyyyMMdd')}_${format(dateRange.to, 'yyyyMMdd')}.csv`);
+                }
+              }}
+              className="p-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
               <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             </button>
           </div>
@@ -108,8 +147,8 @@ export default function ReportsPage() {
 
       {/* Charts Preview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RevenueChart />
-        <DeliveryBarChart />
+        <RevenueChart data={revenueChartData.map(r => ({ month: r.month, revenue: r.revenue }))} />
+        <DeliveryBarChart data={revenueChartData.map(r => ({ day: r.month, deliveries: r.deliveries }))} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -143,5 +182,14 @@ export default function ReportsPage() {
         <DeliveryDonutChart />
       </div>
     </div>
+  );
+
+}
+
+export default function ProtectedReportsPage() {
+  return (
+    <RequireAuth>
+      <ReportsPage />
+    </RequireAuth>
   );
 }

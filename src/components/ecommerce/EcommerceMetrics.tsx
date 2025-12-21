@@ -1,5 +1,7 @@
 "use client";
 import { ArrowDownIcon, ArrowUpIcon, BoxIconLine, DollarLineIcon, GroupIcon, UserCircleIcon } from "@/icons";
+import { useEffect, useState } from 'react';
+import { dashboardService } from '@/services/dashboard.service';
 import { dashboardKPIs } from "@/lib/essivi-mock";
 import Badge from "../ui/badge/Badge";
 
@@ -18,35 +20,63 @@ const formatNumber = (value: number) => {
 };
 
 export const EcommerceMetrics = () => {
+  const [kpisData, setKpisData] = useState<any | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const stats = await dashboardService.getStats();
+        if (!mounted) return;
+        setKpisData(stats.kpis);
+      } catch (e) {
+        // fallback to mock
+        setKpisData({
+          totalRevenue: dashboardKPIs.totalRevenue,
+          totalDeliveries: dashboardKPIs.totalDeliveries,
+          activeAgents: dashboardKPIs.activeAgents,
+          activeClients: dashboardKPIs.activeClients,
+          revenueChange: dashboardKPIs.revenueChange,
+          deliveriesChange: dashboardKPIs.deliveriesChange,
+          agentsChange: dashboardKPIs.agentsChange,
+          clientsChange: dashboardKPIs.clientsChange,
+        });
+      }
+    })();
+    return () => { mounted = false };
+  }, []);
+
+  const data = kpisData;
+
   const kpis = [
     {
       title: "Revenus Total",
-      value: formatCurrency(dashboardKPIs.totalRevenue),
-      delta: dashboardKPIs.revenueChange,
+      value: formatCurrency(data ? data.total_revenue ?? data.totalRevenue : dashboardKPIs.totalRevenue),
+      delta: data ? data.revenueChange ?? data.revenue_change ?? 0 : dashboardKPIs.revenueChange,
       icon: DollarLineIcon,
       iconBg: "bg-brand-50 dark:bg-brand-500/15",
       iconColor: "text-brand-500 dark:text-brand-400",
     },
     {
       title: "Livraisons",
-      value: formatNumber(dashboardKPIs.totalDeliveries),
-      delta: dashboardKPIs.deliveriesChange,
+      value: formatNumber(data ? data.total_deliveries ?? data.totalDeliveries : dashboardKPIs.totalDeliveries),
+      delta: data ? data.deliveriesChange ?? data.deliveries_change ?? 0 : dashboardKPIs.deliveriesChange,
       icon: BoxIconLine,
       iconBg: "bg-success-50 dark:bg-success-500/15",
       iconColor: "text-success-600 dark:text-success-500",
     },
     {
       title: "Agents Actifs",
-      value: dashboardKPIs.activeAgents.toString(),
-      delta: dashboardKPIs.agentsChange,
+      value: (data ? data.active_agents ?? data.activeAgents : dashboardKPIs.activeAgents).toString(),
+      delta: data ? data.agentsChange ?? data.agents_change ?? 0 : dashboardKPIs.agentsChange,
       icon: UserCircleIcon,
       iconBg: "bg-warning-50 dark:bg-warning-500/15",
       iconColor: "text-warning-600 dark:text-warning-500",
     },
     {
       title: "Clients Actifs",
-      value: formatNumber(dashboardKPIs.activeClients),
-      delta: dashboardKPIs.clientsChange,
+      value: formatNumber(data ? data.active_clients ?? data.activeClients : dashboardKPIs.activeClients),
+      delta: data ? data.clientsChange ?? data.clients_change ?? 0 : dashboardKPIs.clientsChange,
       icon: GroupIcon,
       iconBg: "bg-blue-light-50 dark:bg-blue-light-500/15",
       iconColor: "text-blue-light-500",

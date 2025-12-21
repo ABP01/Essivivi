@@ -10,21 +10,25 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { revenueChartData } from '@/lib/essivi-mock';
 
-export function DeliveryBarChart() {
+
+export interface DeliveryBarChartProps {
+  data: Array<{ day: string; deliveries: number }>;
+}
+
+export function DeliveryBarChart({ data }: DeliveryBarChartProps) {
   return (
     <Card className="border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">Livraisons par mois</CardTitle>
+        <CardTitle className="text-lg font-semibold">Livraisons quotidiennes</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={revenueChartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+            <BarChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis
-                dataKey="month"
+                dataKey="day"
                 tick={{ fontSize: 12, fill: '#6b7280' }}
                 tickLine={false}
                 axisLine={false}

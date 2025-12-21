@@ -39,6 +39,8 @@ interface DataTableProps<TData, TValue> {
   searchKey?: string;
   searchPlaceholder?: string;
   onExport?: () => void;
+  loading?: boolean;
+  visibleColumnIds?: string[];
 }
 
 export function DataTable<TData, TValue>({
@@ -46,10 +48,21 @@ export function DataTable<TData, TValue>({
   data,
   searchPlaceholder = 'Rechercher...',
   onExport,
+  loading,
+  visibleColumnIds,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
+    if (!Array.isArray(visibleColumnIds)) return {};
+    const provided: string[] = visibleColumnIds || [];
+    const map: VisibilityState = {};
+    (columns || []).forEach((col: any) => {
+      const id = col.id ?? col.accessorKey ?? (col as any).id ?? '';
+      if (id) map[id] = provided.includes(id);
+    });
+    return map;
+  });
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState('');
   const [showColumns, setShowColumns] = useState(false);

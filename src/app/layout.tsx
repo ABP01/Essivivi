@@ -4,7 +4,7 @@ import './custom.css';
 
 import { SidebarProvider } from '@/context/SidebarContext';
 import { ThemeProvider } from '@/context/ThemeContext';
-import { EssiviHeader, EssiviSidebar } from '@/components/essivi/layout';
+import { ConditionalShell } from '@/components/essivi/layout';
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -22,15 +22,9 @@ export default function RootLayout({
       <body className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans antialiased">
         <ThemeProvider>
           <SidebarProvider>
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-              <EssiviSidebar />
-              <div className="lg:pl-64">
-                <EssiviHeader />
-                <main className="p-4 lg:p-6">
-                  {children}
-                </main>
-              </div>
-            </div>
+            <ConditionalShell>
+              {children}
+            </ConditionalShell>
           </SidebarProvider>
         </ThemeProvider>
       </body>

@@ -1,5 +1,8 @@
-import { Delivery, mockAgents, mockDeliveries } from "@/lib/essivi-mock";
+import { Delivery, mockDeliveries } from "@/lib/essivi-mock";
 import Image from "next/image";
+import { useEffect, useState } from 'react';
+import salesService from '@/services/sales.service';
+import usersService from '@/services/users.service';
 import Badge from "../ui/badge/Badge";
 import {
   Table,
@@ -37,18 +40,50 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-// Get recent deliveries sorted by timestamp
-const recentDeliveries = [...mockDeliveries]
-  .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-  .slice(0, 5);
-
-// Get agent photo by ID
-const getAgentPhoto = (agentId: string) => {
-  const agent = mockAgents.find(a => a.id === agentId);
-  return agent?.photoUrl || '/images/user/user-01.jpg';
-};
-
 export default function RecentOrders() {
+  const [deliveries, setDeliveries] = useState<Delivery[]>([]);
+  const [agents, setAgents] = useState<any[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      try {
+        const [livraisonsResp, agentsResp] = await Promise.all([
+          salesService.getLivraisons(),
+          usersService.getAgents(),
+        ]);
+
+        if (!mounted) return;
+
+        if (Array.isArray(livraisonsResp) && livraisonsResp.length > 0) {
+          setDeliveries(livraisonsResp as Delivery[]);
+        }
+
+        if (Array.isArray(agentsResp) && agentsResp.length > 0) {
+          setAgents(agentsResp as any[]);
+        }
+      } catch (e) {
+        // keep mock data on error
+        setDeliveries(mockDeliveries);
+        // agents fallback left empty
+      }
+    })();
+
+    return () => { mounted = false };
+  }, []);
+
+  // Get recent deliveries sorted by timestamp
+  const recentDeliveries = [...deliveries]
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, 5);
+
+  // Get agent photo by ID
+  const getAgentPhoto = (agentId: string) => {
+    const agent = agents.find(a => a.id === agentId);
+    return agent?.photoUrl || '/images/user/user-01.jpg';
+  };
+
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
       <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -133,7 +168,7 @@ export default function RecentOrders() {
           {/* Table Body */}
           <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
             {recentDeliveries.map((delivery) => {
-              const agent = mockAgents.find(a => a.id === delivery.agentId);
+              const agent = agents.find(a => a.id === delivery.agentId);
               const status = statusConfig[delivery.status];
               return (
                 <TableRow key={delivery.id}>

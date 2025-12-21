@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { revenueChartData } from '@/lib/essivi-mock';
+
 import {
   CartesianGrid,
   Legend,
@@ -13,7 +13,11 @@ import {
   YAxis,
 } from 'recharts';
 
-export function RevenueChart() {
+export interface RevenueChartProps {
+  data: Array<{ month: string; revenue: number }>;
+}
+
+export function RevenueChart({ data }: RevenueChartProps) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
@@ -31,7 +35,7 @@ export function RevenueChart() {
       <CardContent>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={revenueChartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+            <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis
                 dataKey="month"

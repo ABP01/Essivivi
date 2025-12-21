@@ -80,6 +80,7 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    transition: background-color 300ms ease, color 300ms ease;
   }
 }
 
@@ -196,4 +197,19 @@
 
 ::-webkit-scrollbar-thumb {
   @apply bg-gray-300 dark:bg-gray-600 rounded-full hover:bg-gray-400 dark:hover:bg-gray-500;
+}
+
+/* Thème spécifique pour la page de login */
+.login-theme {
+  --background: 210 95% 98%; /* very light blue */
+  --primary: 260 90% 52%; /* purple accent */
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --accent: 260 90% 52%;
+}
+
+.dark.login-theme {
+  --background: 230 12% 6%; /* dark bluish */
+  --primary: 260 90% 60%;
+  --primary-foreground: 210 40% 98%;
+  --accent: 260 90% 60%;
 }

@@ -1,9 +1,10 @@
 "use client";
 import { MoreDotIcon } from "@/icons";
 import { dashboardKPIs } from "@/lib/essivi-mock";
+import { useEffect, useState } from "react";
+import { dashboardService } from "@/services/dashboard.service";
 import { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
-import { useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 
@@ -12,8 +13,8 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
 
-// Calculate satisfaction rate as percentage
-const satisfactionPercent = dashboardKPIs.satisfactionRate;
+// Calculate satisfaction rate as percentage (from API with mock fallback)
+const initialSatisfaction = dashboardKPIs.satisfactionRate;
 
 // Format currency in XOF
 const formatCurrency = (value: number) => {
@@ -26,6 +27,25 @@ const formatCurrency = (value: number) => {
 };
 
 export default function MonthlyTarget() {
+  const [satisfactionPercent, setSatisfactionPercent] = useState<number>(initialSatisfaction);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const stats = await dashboardService.getStats();
+        if (!mounted) return;
+        const kpis = stats?.kpis;
+        const sat = (kpis as any)?.satisfaction_rate ?? (kpis as any)?.satisfactionRate ?? initialSatisfaction;
+        setSatisfactionPercent(sat);
+        setKpis(kpis ?? null);
+      } catch (e) {
+        // keep mock value
+      }
+    })();
+    return () => { mounted = false };
+  }, []);
+
   const series = [satisfactionPercent];
   const options: ApexOptions = {
     colors: ["#465FFF"],
@@ -76,6 +96,7 @@ export default function MonthlyTarget() {
   };
 
   const [isOpen, setIsOpen] = useState(false);
+  const [kpis, setKpis] = useState<any | null>(null);
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -134,11 +155,11 @@ export default function MonthlyTarget() {
           </div>
 
           <span className="absolute left-1/2 top-full -translate-x-1/2 -translate-y-[95%] rounded-full bg-success-50 px-3 py-1 text-xs font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500">
-            +{dashboardKPIs.deliveriesChange}%
+            +{kpis ? kpis.deliveries_change ?? kpis.deliveriesChange ?? dashboardKPIs.deliveriesChange : dashboardKPIs.deliveriesChange}%
           </span>
         </div>
         <p className="mx-auto mt-10 w-full max-w-[380px] text-center text-sm text-gray-500 sm:text-base">
-          Excellente performance ! {dashboardKPIs.totalDeliveries} livraisons ce mois avec un temps moyen de {dashboardKPIs.avgDeliveryTime} min.
+          Excellente performance ! {kpis ? kpis.total_deliveries ?? kpis.totalDeliveries : dashboardKPIs.totalDeliveries} livraisons ce mois avec un temps moyen de {kpis ? kpis.avg_delivery_time ?? kpis.avgDeliveryTime : dashboardKPIs.avgDeliveryTime} min.
         </p>
       </div>
 
@@ -173,7 +194,7 @@ export default function MonthlyTarget() {
             Revenus
           </p>
           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            {formatCurrency(dashboardKPIs.totalRevenue)}
+            {formatCurrency(kpis ? kpis.total_revenue ?? kpis.totalRevenue : dashboardKPIs.totalRevenue)}
             <svg
               width="16"
               height="16"
@@ -198,7 +219,7 @@ export default function MonthlyTarget() {
             En attente
           </p>
           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            {dashboardKPIs.pendingOrders}
+            {kpis ? kpis.total_pending_orders ?? kpis.pendingOrders ?? kpis.pending_orders ?? dashboardKPIs.pendingOrders : dashboardKPIs.pendingOrders}
             <svg
               width="16"
               height="16"

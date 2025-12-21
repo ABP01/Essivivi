@@ -1,10 +1,12 @@
 "use client";
 
 import { Card } from '@/components/ui/card';
-import { mockAgents, mockClients, mockDeliveries } from '@/lib/essivi-mock';
 import L from 'leaflet';
 import { Layers, Store, Truck, Users } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import usersService from '@/services/users.service';
+import salesService from '@/services/sales.service';
+import logisticsService from '@/services/logistics.service';
 import 'leaflet/dist/leaflet.css';
 
 // Fix for default markers
@@ -24,6 +26,9 @@ export default function MapComponent() {
     const [showClients, setShowClients] = useState(true);
     const [showHeatmap, setShowHeatmap] = useState(false);
     const [selectedAgent, setSelectedAgent] = useState<string>('all');
+    const [agents, setAgents] = useState<any[]>([]);
+    const [clients, setClients] = useState<any[]>([]);
+    const [deliveries, setDeliveries] = useState<any[]>([]);
 
     useEffect(() => {
         if (!mapRef.current || mapInstanceRef.current) return;
@@ -57,8 +62,8 @@ export default function MapComponent() {
         // Add agent markers
         if (showAgents) {
             const filteredAgents = selectedAgent === 'all'
-                ? mockAgents.filter(a => a.lat && a.lng)
-                : mockAgents.filter(a => a.id === selectedAgent && a.lat && a.lng);
+                ? agents.filter(a => a.lat && a.lng)
+                : agents.filter(a => a.id === selectedAgent && a.lat && a.lng);
 
             filteredAgents.forEach(agent => {
                 const statusColor = agent.status === 'on_delivery' ? '#3B82F6' :
@@ -66,24 +71,22 @@ export default function MapComponent() {
 
                 const customIcon = L.divIcon({
                     className: 'custom-marker',
-                    html: `
-            <div style="
-              background: ${statusColor};
-              width: 40px;
-              height: 40px;
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              border: 3px solid white;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            ">
-              <img src="${agent.photoUrl}" 
-                   style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" 
-                   alt="${agent.firstname}"
-              />
-            </div>
-          `,
+                        html: (() => {
+                            const img = agent.photoUrl ? `<img src="${agent.photoUrl}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" alt="${agent.firstname}"/>` : `<div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;">?</div>`;
+                            return `
+                        <div style="
+                            background: ${statusColor};
+                            width: 40px;
+                            height: 40px;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            border: 3px solid white;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                        ">${img}</div>
+                    `;
+                        })(),
                     iconSize: [40, 40],
                     iconAnchor: [20, 20],
                 });
@@ -94,11 +97,11 @@ export default function MapComponent() {
                         .bindPopup(`
               <div style="min-width: 180px;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                  <img src="${agent.photoUrl}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />
-                  <div>
-                    <strong>${agent.firstname} ${agent.lastname}</strong><br/>
-                    <span style="color: #666; font-size: 12px;">${agent.tricycle.plate}</span>
-                  </div>
+                                    ${agent.photoUrl ? `<img src="${agent.photoUrl}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />` : `<div style="width:40px;height:40px;border-radius:50%;background:#eee;display:inline-block;margin-right:8px;"></div>`}
+                                    <div>
+                                        <strong>${agent.firstname} ${agent.lastname}</strong><br/>
+                                        <span style="color: #666; font-size: 12px;">${agent.tricycle?.plate ?? '—'}</span>
+                                    </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 4px;">
                   <span style="color: ${statusColor};">●</span>
@@ -116,7 +119,7 @@ export default function MapComponent() {
 
         // Add client markers
         if (showClients) {
-            mockClients.slice(0, 20).forEach(client => {
+            clients.slice(0, 20).forEach(client => {
                 const clientIcon = L.divIcon({
                     className: 'custom-marker',
                     html: `
@@ -156,7 +159,8 @@ export default function MapComponent() {
         if (showHeatmap) {
             const deliveryCounts: { [key: string]: { lat: number; lng: number; count: number } } = {};
 
-            mockDeliveries.forEach(delivery => {
+            deliveries.forEach(delivery => {
+                if (!delivery.lat || !delivery.lng) return;
                 const key = `${delivery.lat.toFixed(3)},${delivery.lng.toFixed(3)}`;
                 if (!deliveryCounts[key]) {
                     deliveryCounts[key] = { lat: delivery.lat, lng: delivery.lng, count: 0 };
@@ -177,6 +181,27 @@ export default function MapComponent() {
             });
         }
     }, [showAgents, showClients, showHeatmap, selectedAgent]);
+
+    // Fetch data
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const [agentsResp, clientsResp, deliveriesResp] = await Promise.all([
+                    usersService.getAgents(),
+                    usersService.getClients(),
+                    salesService.getLivraisons(),
+                ]);
+                if (!mounted) return;
+                if (Array.isArray(agentsResp)) setAgents(agentsResp);
+                if (Array.isArray(clientsResp)) setClients(clientsResp);
+                if (Array.isArray(deliveriesResp)) setDeliveries(deliveriesResp);
+            } catch (e) {
+                // fallback to empty
+            }
+        })();
+        return () => { mounted = false };
+    }, []);
 
     return (
         <div className="space-y-6">
@@ -206,11 +231,11 @@ export default function MapComponent() {
                                 className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
                             >
                                 <option value="all">Tous les agents</option>
-                                {mockAgents.map(agent => (
+                                {agents.length > 0 ? agents.map(agent => (
                                     <option key={agent.id} value={agent.id}>
                                         {agent.firstname} {agent.lastname}
                                     </option>
-                                ))}
+                                )) : null}
                             </select>
                         </div>
 

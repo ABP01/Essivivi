@@ -3,6 +3,8 @@ import { revenueChartData } from "@/lib/essivi-mock";
 import { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 import ChartTab from "../common/ChartTab";
+import { useEffect, useState } from "react";
+import { dashboardService } from "@/services/dashboard.service";
 
 // Dynamically import the ReactApexChart component
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -20,6 +22,24 @@ const formatCurrency = (value: number) => {
 };
 
 export default function StatisticsChart() {
+  const [chartData, setChartData] = useState<any[]>(revenueChartData);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const stats = await dashboardService.getStats();
+        if (!mounted) return;
+        const revenue = stats?.charts?.revenue;
+        if (revenue && revenue.length) {
+          setChartData(revenue as any[]);
+        }
+      } catch (e) {
+        // fallback
+      }
+    })();
+    return () => { mounted = false };
+  }, []);
   const options: ApexOptions = {
     legend: {
       show: true,
@@ -72,7 +92,7 @@ export default function StatisticsChart() {
     },
     xaxis: {
       type: "category",
-      categories: revenueChartData.map(d => d.month),
+      categories: chartData.map(d => d.month),
       axisBorder: {
         show: false,
       },
@@ -112,11 +132,11 @@ export default function StatisticsChart() {
   const series = [
     {
       name: "Revenus",
-      data: revenueChartData.map(d => d.revenue),
+      data: chartData.map(d => d.revenue ?? 0),
     },
     {
       name: "Livraisons",
-      data: revenueChartData.map(d => d.deliveries),
+      data: chartData.map(d => d.deliveries ?? d.deliveries_count ?? 0),
     },
   ];
   return (

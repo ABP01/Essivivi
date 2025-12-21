@@ -1,10 +1,12 @@
 "use client";
 
+import RequireAuth from '@/components/auth/RequireAuth';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { mockDeliveries } from '@/lib/essivi-mock';
+import { useEffect, useState } from 'react';
+import salesService from '@/services/sales.service';
 import { Camera, Check, History, MapPin, Play, Plus, Wifi, WifiOff } from 'lucide-react';
-import { useState } from 'react';
 
 // Composant défini en dehors du render
 function SyncStatusIndicator({ syncStatus }: { syncStatus: 'synced' | 'pending' | 'offline' }) {
@@ -22,10 +24,28 @@ function SyncStatusIndicator({ syncStatus }: { syncStatus: 'synced' | 'pending' 
   );
 }
 
-export default function MobileDelivererPage() {
+function MobileDelivererPage() {
   const [activeTab, setActiveTab] = useState<'start' | 'new' | 'history'>('start');
   const [syncStatus] = useState<'synced' | 'pending' | 'offline'>('synced');
-  const todayDeliveries = mockDeliveries.slice(0, 5);
+  const [todayDeliveries, setTodayDeliveries] = useState<typeof mockDeliveries>(mockDeliveries.slice(0,5));
+  const [allDeliveries, setAllDeliveries] = useState<typeof mockDeliveries>(mockDeliveries);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const livraisons = await salesService.getLivraisons();
+        if (!mounted) return;
+        if (Array.isArray(livraisons) && livraisons.length > 0) {
+          setAllDeliveries(livraisons);
+          setTodayDeliveries(livraisons.slice(0,5));
+        }
+      } catch (e) {
+        // keep mocks
+      }
+    })();
+    return () => { mounted = false };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
@@ -95,7 +115,7 @@ export default function MobileDelivererPage() {
         {activeTab === 'history' && (
           <>
             <h3 className="font-semibold text-gray-900 dark:text-white">Historique</h3>
-            {mockDeliveries.filter(d => d.status === 'completed').slice(0, 10).map(d => (
+            {allDeliveries.filter(d => d.status === 'completed').slice(0, 10).map(d => (
               <Card key={d.id} className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl flex justify-between items-center">
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">{d.clientName}</p>
@@ -130,5 +150,14 @@ export default function MobileDelivererPage() {
         ))}
       </nav>
     </div>
+  );
+
+}
+
+export default function ProtectedMobileDelivererPage() {
+  return (
+    <RequireAuth>
+      <MobileDelivererPage />
+    </RequireAuth>
   );
 }

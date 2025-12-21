@@ -2,10 +2,13 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { mockAgents, mockDeliveries } from '@/lib/essivi-mock';
+import { mockDeliveries } from '@/lib/essivi-mock';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import salesService from '@/services/sales.service';
+import usersService from '@/services/users.service';
 
 const statusConfig = {
   pending: { label: 'En attente', class: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
@@ -15,12 +18,34 @@ const statusConfig = {
 };
 
 export function RecentDeliveries() {
-  const recentDeliveries = mockDeliveries
+  const [deliveries, setDeliveries] = useState<any[]>([]);
+  const [agents, setAgents] = useState<any[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const [livraisonsResp, agentsResp] = await Promise.all([
+          salesService.getLivraisons(),
+          usersService.getAgents(),
+        ]);
+        if (!mounted) return;
+        if (Array.isArray(livraisonsResp) && livraisonsResp.length > 0) setDeliveries(livraisonsResp);
+        if (Array.isArray(agentsResp) && agentsResp.length > 0) setAgents(agentsResp);
+      } catch (e) {
+        // keep mock data on error
+        setDeliveries(mockDeliveries);
+      }
+    })();
+    return () => { mounted = false };
+  }, []);
+
+  const recentDeliveries = [...deliveries]
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     .slice(0, 5);
 
   const getAgentPhoto = (agentId: string) => {
-    const agent = mockAgents.find(a => a.id === agentId);
+    const agent = agents.find(a => a.id === agentId);
     return agent?.photoUrl;
   };
 
@@ -55,14 +80,22 @@ export function RecentDeliveries() {
             key={delivery.id}
             className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
-            <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-100">
-              <Image
-                src={getAgentPhoto(delivery.agentId) || ''}
-                alt={delivery.agentName}
-                width={40}
-                height={40}
-                className="object-cover"
-              />
+            <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+              {getAgentPhoto(delivery.agentId) ? (
+                <Image
+                  src={getAgentPhoto(delivery.agentId) as string}
+                  alt={delivery.agentName}
+                  width={40}
+                  height={40}
+                  className="object-cover"
+                />
+              ) : (
+                <div className="h-10 w-10 flex items-center justify-center text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 2a4 4 0 100 8 4 4 0 000-8zM2 18a8 8 0 1116 0H2z" />
+                  </svg>
+                </div>
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{delivery.clientName}</p>
@@ -74,9 +107,9 @@ export function RecentDeliveries() {
               <p className="text-sm font-semibold">{formatCurrency(delivery.amount)}</p>
               <Badge
                 variant="outline"
-                className={cn('text-xs', statusConfig[delivery.status].class)}
+                className={cn('text-xs', (statusConfig as any)[delivery.status]?.class)}
               >
-                {statusConfig[delivery.status].label}
+                {(statusConfig as any)[delivery.status]?.label}
               </Badge>
             </div>
           </div>

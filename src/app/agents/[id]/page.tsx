@@ -3,7 +3,10 @@
 import { MapLeaflet } from '@/components/essivi/map/MapLeaflet';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { mockAgents, mockDeliveries } from '@/lib/essivi-mock';
+import { mockDeliveries } from '@/lib/essivi-mock';
+import { useEffect, useState } from 'react';
+import usersService from '@/services/users.service';
+import salesService from '@/services/sales.service';
 import { cn } from '@/lib/utils';
 import {
     ArrowLeft,
@@ -19,7 +22,6 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
 
 const statusConfig = {
   active: { label: 'Actif', class: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
@@ -33,8 +35,71 @@ export default function AgentDetailsPage() {
   const [activeTab, setActiveTab] = useState<'map' | 'history'>('map');
   
   const id = params.id as string;
-  const agent = mockAgents.find(a => a.id === id);
-  const agentDeliveries = mockDeliveries.filter(d => d.agentId === id);
+  const [agent, setAgent] = useState<any | null>(null);
+  const [agentDeliveries, setAgentDeliveries] = useState<any[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const [agentResp, livraisonsResp] = await Promise.all([
+          usersService.getAgentById(id),
+          salesService.getLivraisons(),
+        ]);
+        if (!mounted) return;
+        const normalizeAgent = (a: any) => {
+          if (!a) return a;
+          const user = a.user || {};
+          // names
+          const firstname = a.firstname || a.first_name || user.first_name || user.firstname || '';
+          const lastname = a.lastname || a.last_name || user.last_name || user.lastname || '';
+          // contact
+          const phone = a.phone || a.phone_number || user.phone_number || user.phone || a.contact || '';
+          const email = a.email || user.email || '';
+          // photo
+          const photoUrl = a.photoUrl || a.photo_url || user.photoUrl || user.photo_url || user.avatar || null;
+          // tricycle / plate fields
+          const tricycle = a.tricycle || (a.tricycle_plate ? { plate: a.tricycle_plate } : (a.tricycle || null));
+          // identification
+          const identificationNumber = a.identificationNumber || a.identification_number || '';
+          // dates
+          const dateOfHire = a.date_embauche || a.dateOfHire || user.date_embauche || user.dateOfHire || null;
+          // totals
+          const totalDeliveries = a.totalDeliveries ?? a.total_deliveries ?? a.deliveries ?? 0;
+          const revenue = a.revenue ?? a.revenu ?? 0;
+          // coords
+          const lat = a.lat ?? a.latitude ?? a.gps_lat ?? a.gpsLat ?? null;
+          const lng = a.lng ?? a.longitude ?? a.gps_lng ?? a.gpsLng ?? null;
+
+          // restore locally-stored identification number if missing
+          try {
+            if (!identificationNumber && typeof window !== 'undefined') {
+              const usernameKey = user.username || a.username || '';
+              if (usernameKey) {
+                const stored = localStorage.getItem(`agent_ident_${usernameKey}`);
+                if (stored) return { ...a, firstname, lastname, phone, email, photoUrl, tricycle, identificationNumber: stored, dateOfHire, totalDeliveries, revenue, lat, lng };
+              }
+            }
+          } catch (e) {}
+
+          return { ...a, firstname, lastname, phone, email, photoUrl, tricycle, identificationNumber, dateOfHire, totalDeliveries, revenue, lat, lng };
+        };
+
+        if (agentResp) {
+          setAgent(normalizeAgent(agentResp));
+        }
+
+        if (Array.isArray(livraisonsResp)) {
+          const agentKey = String(agentResp?.id ?? agentResp?.user?.id ?? id);
+          setAgentDeliveries(livraisonsResp.filter((d: any) => String(d.agentId ?? d.agent_id ?? d.agent) === agentKey));
+        }
+      } catch (e) {
+        // fallback to mock
+        setAgentDeliveries(mockDeliveries.filter((d: any) => String(d.agentId ?? d.agent_id ?? d.agent) === String(id)));
+      }
+    })();
+    return () => { mounted = false };
+  }, [id]);
 
   if (!agent) {
     return (
@@ -53,11 +118,14 @@ export default function AgentDetailsPage() {
   };
 
   const formatDate = (date: string) => {
+    if (!date) return '—';
+    const d = new Date(date);
+    if (!isFinite(d.getTime())) return '—';
     return new Intl.DateTimeFormat('fr-FR', {
       day: '2-digit',
       month: 'long',
       year: 'numeric',
-    }).format(new Date(date));
+    }).format(d);
   };
 
   return (
@@ -65,7 +133,7 @@ export default function AgentDetailsPage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <button 
-          onClick={() => router.push('/essivi/agents')}
+          onClick={() => router.push('/agents')}
           className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
         >
           <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
@@ -84,18 +152,24 @@ export default function AgentDetailsPage() {
         {/* Profile Card */}
         <Card className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
           <div className="flex flex-col items-center text-center">
-            <div className="relative h-24 w-24 rounded-full overflow-hidden mb-4 bg-gray-100">
-              <Image
-                src={agent.photoUrl}
-                alt={`${agent.firstname} ${agent.lastname}`}
-                fill
-                className="object-cover"
-              />
+            <div className="relative h-24 w-24 rounded-full overflow-hidden mb-4 bg-gray-100 flex items-center justify-center">
+              {agent.photoUrl ? (
+                <Image src={agent.photoUrl} alt={`${agent.firstname} ${agent.lastname}`} fill className="object-cover" />
+              ) : (
+                <div className="h-24 w-24 flex items-center justify-center text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 2a4 4 0 100 8 4 4 0 000-8zM2 18a8 8 0 1116 0H2z" />
+                  </svg>
+                </div>
+              )}
             </div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">{agent.firstname} {agent.lastname}</h2>
-            <Badge className={cn('mt-2', statusConfig[agent.status].class)}>
-              {statusConfig[agent.status].label}
-            </Badge>
+            {
+              (() => {
+                const cfg = (statusConfig as any)[agent.status] ?? { label: (agent.status || 'Inconnu'), class: 'bg-gray-100 text-gray-700' };
+                return <Badge className={cn('mt-2', cfg.class)}>{cfg.label}</Badge>;
+              })()
+            }
 
             <div className="w-full mt-6 space-y-3">
               <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
@@ -108,7 +182,7 @@ export default function AgentDetailsPage() {
               </div>
               <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
                 <Truck className="h-4 w-4 text-gray-400" />
-                <span className="text-sm font-mono text-gray-700 dark:text-gray-300">{agent.tricycle.plate}</span>
+                <span className="text-sm font-mono text-gray-700 dark:text-gray-300">{agent.tricycle?.plate ?? '—'}</span>
               </div>
               <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
                 <Calendar className="h-4 w-4 text-gray-400" />

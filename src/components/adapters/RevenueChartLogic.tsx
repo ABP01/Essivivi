@@ -4,18 +4,33 @@ import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 import ComponentCard from "@/components/common/ComponentCard";
 import { revenueChartData } from "@/lib/essivi-mock";
+import { useEffect, useState } from 'react';
+import { dashboardService } from '@/services/dashboard.service';
 import { formatCurrencyXOF } from "@/lib/format";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 export default function RevenueChartLogic() {
-  const categories = revenueChartData.map((d) => d.month);
-  const series = [
-    {
-      name: "Revenus",
-      data: revenueChartData.map((d) => d.revenue),
-    },
-  ];
+  const [categories, setCategories] = useState<string[]>([]);
+  const [series, setSeries] = useState<any[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const stats = await dashboardService.getStats();
+        if (!mounted) return;
+        const rev = stats.charts?.revenue ?? [];
+        setCategories(rev.map((r: any) => r.month));
+        setSeries([{ name: 'Revenus', data: rev.map((r: any) => r.revenue) }]);
+      } catch (e) {
+        // fallback to mock data
+        setCategories(revenueChartData.map((d) => d.month));
+        setSeries([{ name: 'Revenus', data: revenueChartData.map((d) => d.revenue) }]);
+      }
+    })();
+    return () => { mounted = false };
+  }, []);
 
   const options: ApexOptions = {
     legend: { show: false },

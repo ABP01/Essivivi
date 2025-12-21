@@ -1,13 +1,16 @@
 "use client";
 
+import RequireAuth from '@/components/auth/RequireAuth';
 import { DataTable } from '@/components/essivi/ui/DataTable';
 import { Badge } from '@/components/ui/badge';
-import { mockAgents, mockOrders, Order } from '@/lib/essivi-mock';
+import { mockOrders, Order } from '@/lib/essivi-mock';
+import { useEffect, useState } from 'react';
+import salesService from '@/services/sales.service';
+import usersService from '@/services/users.service';
 import { cn } from '@/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import { Clock, Package, UserPlus } from 'lucide-react';
 import Image from 'next/image';
-import { useState } from 'react';
 
 const statusConfig = {
   pending: { label: 'En attente', class: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
@@ -17,9 +20,33 @@ const statusConfig = {
   cancelled: { label: 'Annulée', class: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
 };
 
-export default function OrdersPage() {
+function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
+  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const [agents, setAgents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      setLoading(true);
+      try {
+        const [data, agentsResp] = await Promise.all([
+          salesService.getCommandes(),
+          usersService.getAgents(),
+        ]);
+        if (mounted && Array.isArray(data)) setOrders(data);
+        if (mounted && Array.isArray(agentsResp)) setAgents(agentsResp);
+      } catch (e) {
+        // fallback to mockOrders
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    load();
+    return () => { mounted = false };
+  }, []);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -102,7 +129,7 @@ export default function OrdersPage() {
       cell: ({ row }) => {
         const order = row.original;
         if (order.assignedAgentId) {
-          const agent = mockAgents.find(a => a.id === order.assignedAgentId);
+          const agent = agents.find(a => a.id === order.assignedAgentId);
           return (
             <div className="flex items-center gap-2">
               <div className="relative h-7 w-7 rounded-full overflow-hidden bg-gray-100">
@@ -144,7 +171,7 @@ export default function OrdersPage() {
     },
   ];
 
-  const pendingCount = mockOrders.filter(o => o.status === 'pending').length;
+  const pendingCount = orders.filter(o => o.status === 'pending').length;
 
   return (
     <div className="space-y-6">
@@ -176,10 +203,20 @@ export default function OrdersPage() {
       {/* Data Table */}
       <DataTable
         columns={columns}
-        data={mockOrders}
+        data={orders}
         searchPlaceholder="Rechercher une commande..."
         onExport={() => console.log('Export orders')}
+        loading={loading}
       />
     </div>
+  );
+
+}
+
+export default function ProtectedOrdersPage() {
+  return (
+    <RequireAuth>
+      <OrdersPage />
+    </RequireAuth>
   );
 }

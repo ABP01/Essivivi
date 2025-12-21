@@ -2,11 +2,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { mockAgents } from '@/lib/essivi-mock';
 import { cn } from '@/lib/utils';
 import { MapPin, Truck, Clock } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import usersService from '@/services/users.service';
 
 const statusConfig = {
   active: { label: 'Actif', class: 'bg-green-500/10 text-green-600 border-green-500/20', icon: '🟢' },
@@ -15,9 +16,23 @@ const statusConfig = {
 };
 
 export function AgentActivity() {
-  const activeAgents = mockAgents
-    .filter(a => a.status !== 'inactive')
-    .slice(0, 5);
+  const [agents, setAgents] = useState<any[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const agentsResp = await usersService.getAgents();
+        if (!mounted) return;
+        if (Array.isArray(agentsResp)) setAgents(agentsResp);
+      } catch (e) {
+        // keep empty list
+      }
+    })();
+    return () => { mounted = false };
+  }, []);
+
+  const activeAgents = agents.filter((a: any) => a.status !== 'inactive').slice(0, 5);
 
   return (
     <Card className="border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
@@ -43,9 +58,12 @@ export function AgentActivity() {
                   className="object-cover"
                 />
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 text-xs">
-                {statusConfig[agent.status].icon}
-              </span>
+              {
+                (() => {
+                  const cfg = (statusConfig as any)[agent.status] ?? { label: (agent.status || 'inconnu'), class: 'bg-gray-100 text-gray-700', icon: '❔' };
+                  return <span className="absolute -bottom-0.5 -right-0.5 text-xs">{cfg.icon}</span>;
+                })()
+              }
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">
@@ -53,16 +71,20 @@ export function AgentActivity() {
               </p>
               <div className="flex items-center gap-2 text-xs text-gray-500">
                 <Truck className="h-3 w-3" />
-                <span>{agent.tricycle.plate}</span>
+                <span>{agent.tricycle?.plate ?? '—'}</span>
               </div>
             </div>
             <div className="text-right">
-              <Badge
-                variant="outline"
-                className={cn('text-xs', statusConfig[agent.status].class)}
-              >
-                {statusConfig[agent.status].label}
-              </Badge>
+              {
+                (() => {
+                  const cfg = (statusConfig as any)[agent.status] ?? { label: (agent.status || 'Inconnu'), class: 'bg-gray-100 text-gray-700', icon: '❔' };
+                  return (
+                    <>
+                      <Badge variant="outline" className={cn('text-xs', cfg.class)}>{cfg.label}</Badge>
+                    </>
+                  );
+                })()
+              }
               <p className="text-xs text-gray-500 mt-1">
                 {agent.totalDeliveries} livraisons
               </p>
