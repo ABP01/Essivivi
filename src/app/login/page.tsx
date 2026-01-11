@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Droplets, Eye, EyeOff } from 'lucide-react';
@@ -32,13 +31,23 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await authService.login(username, password);
-      router.replace('/dashboard');
+      // Force a full navigation so the cookie set on the client is sent to the server
+      // and Next middleware can validate the auth state before rendering the dashboard.
+      if (typeof window !== 'undefined') {
+        // slight delay to ensure cookie is persisted before the navigation
+        setTimeout(() => window.location.replace('/dashboard'), 300);
+      }
     } catch (err: any) {
-      // Show detailed backend error when available for easier debugging
-      const backendMessage = err?.response?.data || err?.response?.data?.detail;
+      // Map common backend errors to user-friendly French messages
       const status = err?.response?.status;
-      console.error('Login error', status, backendMessage, err);
-      setError(backendMessage ? (typeof backendMessage === 'string' ? backendMessage : JSON.stringify(backendMessage)) : (err?.message || 'Identifiants incorrects ou erreur de connexion.'));
+      const backendData = err?.response?.data;
+      console.error('Login error', status, backendData, err);
+      if (status === 401) {
+        setError('Identifiant incorrecte');
+      } else {
+        const backendMessage = backendData?.detail || backendData || err?.message;
+        setError(backendMessage ? (typeof backendMessage === 'string' ? backendMessage : JSON.stringify(backendMessage)) : 'Identifiants incorrects ou erreur de connexion.');
+      }
     } finally {
       setLoading(false);
     }
@@ -61,9 +70,6 @@ export default function LoginPage() {
             <div className="flex justify-center gap-3">
               <button onClick={() => setShowForm(true)} className="btn-primary">Oui, se connecter</button>
               <button onClick={() => router.push('/signup')} className="px-4 py-2 border rounded">Non, créer un compte</button>
-            </div>
-            <div className="mt-4 text-sm text-gray-500">
-              <p>Compte de test (créé sur le serveur) : <strong>testuser1 / Testpass123</strong></p>
             </div>
           </div>
         ) : (

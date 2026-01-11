@@ -32,6 +32,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "file-saver": "^2.0.5",
     "flatpickr": "^4.6.13",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.556.0",
@@ -47,12 +48,12 @@
     "react-leaflet": "^5.0.0",
     "recharts": "^3.5.1",
     "swiper": "^11.2.10",
-    "tailwind-merge": "^2.6.0",
-    "file-saver": "^2.0.5"
+    "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@svgr/webpack": "^8.1.0",
+    "@types/file-saver": "^2.0.7",
     "@types/node": "^20.19.25",
     "@types/react": "^19.2.1",
     "@types/react-dom": "^19.2.1",

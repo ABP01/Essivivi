@@ -44,33 +44,42 @@ export interface Delivery {
   address: string;
   lat: number;
   lng: number;
-  quantity: {
+  quantity?: {
     vitale: number;
     voltic: number;
     other: number;
   };
   amount: number;
-  photoUrl: string;
-  signatureUrl: string;
+  photoUrl?: string;
+  signatureUrl?: string;
   timestamp: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  status: 'pending' | 'validated' | 'delivered' | 'cancelled';
 }
 
 export interface Order {
   id: string;
-  clientId: string;
-  clientName: string;
-  requestedAt: string;
-  preferredAt: string;
-  quantity: {
+  client: number | string;
+  client_name?: string;
+  clientName?: string; // Compatibilité
+  created_at: string;
+  requestedAt?: string; // Compatibilité
+  date_souhaitee: string;
+  preferredAt?: string; // Compatibilité (utilisé dans orders/page.tsx)
+  quantity?: {
     vitale: number;
     voltic: number;
     other: number;
   };
-  status: 'pending' | 'assigned' | 'in_progress' | 'completed' | 'cancelled';
-  assignedAgentId?: string;
-  assignedAgentName?: string;
-  totalAmount: number;
+  statut: 'pending' | 'validated' | 'delivered' | 'cancelled';
+  status?: string; // Compatibilité UI
+  agent?: number | string;
+  agent_name?: string;
+  assignedAgentId?: string | number; // Compatibilité
+  assignedAgentName?: string; // Compatibilité
+  montant: number;
+  totalAmount?: number; // Compatibilité
+  delivery_latitude?: number;
+  delivery_longitude?: number;
 }
 
 // Unsplash images for water distribution context
@@ -152,7 +161,7 @@ export const mockDeliveries: Delivery[] = Array.from({ length: 200 }, (_, i) => 
   const vitale = Math.floor(Math.random() * 20);
   const voltic = Math.floor(Math.random() * 15);
   const other = Math.floor(Math.random() * 10);
-  
+
   return {
     id: `delivery-${i + 1}`,
     agentId: agent.id,
@@ -168,7 +177,7 @@ export const mockDeliveries: Delivery[] = Array.from({ length: 200 }, (_, i) => 
     photoUrl: deliveryPhotos[Math.floor(Math.random() * deliveryPhotos.length)],
     signatureUrl: '',
     timestamp: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000).toISOString(),
-    status: ['pending', 'in_progress', 'completed', 'cancelled'][Math.floor(Math.random() * 4)] as Delivery['status'],
+    status: ['pending', 'validated', 'delivered', 'cancelled'][Math.floor(Math.random() * 4)] as Delivery['status'],
   };
 });
 
@@ -179,18 +188,27 @@ export const mockOrders: Order[] = Array.from({ length: 30 }, (_, i) => {
   const vitale = Math.floor(Math.random() * 30) + 5;
   const voltic = Math.floor(Math.random() * 20);
   const other = Math.floor(Math.random() * 10);
-  
+  const montant = vitale * 500 + voltic * 600 + other * 400;
+  const created_at = new Date(Date.now() - Math.floor(Math.random() * 5) * 24 * 60 * 60 * 1000).toISOString();
+  const date_souhaitee = new Date(Date.now() + Math.floor(Math.random() * 3) * 24 * 60 * 60 * 1000).toISOString();
+  const statut = agent ? (['validated', 'delivered'][Math.floor(Math.random() * 2)] as Order['statut']) : 'pending';
+
   return {
     id: `order-${i + 1}`,
-    clientId: client.id,
-    clientName: client.storeName,
-    requestedAt: new Date(Date.now() - Math.floor(Math.random() * 5) * 24 * 60 * 60 * 1000).toISOString(),
-    preferredAt: new Date(Date.now() + Math.floor(Math.random() * 3) * 24 * 60 * 60 * 1000).toISOString(),
+    client: client.id,
+    client_name: client.storeName,
+    clientName: client.storeName, // Compatibilité
+    created_at,
+    requestedAt: created_at, // Compatibilité
+    date_souhaitee,
+    preferredAt: date_souhaitee, // Compatibilité lib-essivi-mock reference
     quantity: { vitale, voltic, other },
-    status: agent ? (['assigned', 'in_progress', 'completed'][Math.floor(Math.random() * 3)] as Order['status']) : 'pending',
-    assignedAgentId: agent?.id,
-    assignedAgentName: agent ? `${agent.firstname} ${agent.lastname}` : undefined,
-    totalAmount: vitale * 500 + voltic * 600 + other * 400,
+    statut,
+    status: statut, // Compatibilité UI
+    agent: agent?.id,
+    agent_name: agent ? `${agent.firstname} ${agent.lastname}` : undefined,
+    montant,
+    totalAmount: montant, // Compatibilité
   };
 });
 

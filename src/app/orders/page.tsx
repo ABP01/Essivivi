@@ -8,24 +8,31 @@ import { useEffect, useState } from 'react';
 import salesService from '@/services/sales.service';
 import usersService from '@/services/users.service';
 import { cn } from '@/lib/utils';
+import reportsService from '@/services/reports.service';
+import { saveAs } from 'file-saver';
 import { ColumnDef } from '@tanstack/react-table';
 import { Clock, Package, UserPlus } from 'lucide-react';
 import Image from 'next/image';
 
 const statusConfig = {
   pending: { label: 'En attente', class: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+  validated: { label: 'Validée', class: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+  delivered: { label: 'Livrée', class: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+  cancelled: { label: 'Annulée', class: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+  // Pour compatibilité avec les anciennes données
   assigned: { label: 'Assignée', class: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
   in_progress: { label: 'En cours', class: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
   completed: { label: 'Terminée', class: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
-  cancelled: { label: 'Annulée', class: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
 };
 
 function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
+  const [selectedAgentId, setSelectedAgentId] = useState<string>('');
   const [orders, setOrders] = useState<Order[]>(mockOrders);
   const [agents, setAgents] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -56,18 +63,44 @@ function OrdersPage() {
     }).format(value);
   };
 
-  const formatDate = (timestamp: string) => {
-    return new Intl.DateTimeFormat('fr-FR', {
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(timestamp));
+  const formatDate = (timestamp?: string) => {
+    if (!timestamp) return 'N/A';
+    try {
+      return new Intl.DateTimeFormat('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(new Date(timestamp));
+    } catch (e) {
+      return timestamp;
+    }
   };
 
   const handleAssign = (order: Order) => {
     setSelectedOrder(order);
+    setSelectedAgentId('');
     setIsAssignOpen(true);
+  };
+
+  const handleSubmitAssignment = async () => {
+    if (!selectedOrder || !selectedAgentId) return;
+
+    setAssigning(true);
+    try {
+      await salesService.assignAgent(selectedOrder.id, selectedAgentId);
+      // Refresh orders list
+      const data = await salesService.getCommandes();
+      if (Array.isArray(data)) setOrders(data);
+      setIsAssignOpen(false);
+      setSelectedOrder(null);
+      setSelectedAgentId('');
+    } catch (err) {
+      console.error('Failed to assign agent', err);
+      alert('Impossible d\'assigner l\'agent. Veuillez réessayer.');
+    } finally {
+      setAssigning(false);
+    }
   };
 
   const columns: ColumnDef<Order>[] = [
@@ -79,70 +112,82 @@ function OrdersPage() {
       ),
     },
     {
-      accessorKey: 'clientName',
+      accessorKey: 'client_name',
       header: 'Client',
       cell: ({ row }) => (
-        <p className="font-medium text-gray-900 dark:text-white">{row.original.clientName}</p>
+        <p className="font-medium text-gray-900 dark:text-white">{row.original.client_name || row.original.clientName}</p>
       ),
     },
     {
       accessorKey: 'quantity',
-      header: 'Quantité',
+      header: 'Produit / Quantité',
       cell: ({ row }) => {
-        const q = row.original.quantity;
-        const total = q.vitale + q.voltic + q.other;
+        const order = row.original;
+        const q = order.quantity;
+        if (q) {
+          const total = (q.vitale || 0) + (q.voltic || 0) + (q.other || 0);
+          return (
+            <div className="flex items-center gap-2">
+              <Package className="h-4 w-4 text-gray-400" />
+              <span className="text-sm font-medium text-gray-900 dark:text-white">{total} sachets</span>
+            </div>
+          );
+        }
         return (
           <div className="flex items-center gap-2">
             <Package className="h-4 w-4 text-gray-400" />
-            <span className="text-sm font-medium text-gray-900 dark:text-white">{total} sachets</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-white">Eau Essivi</span>
           </div>
         );
       },
     },
     {
-      accessorKey: 'totalAmount',
+      accessorKey: 'montant',
       header: 'Montant',
       cell: ({ row }) => (
-        <span className="font-semibold text-gray-900 dark:text-white">{formatCurrency(row.original.totalAmount)}</span>
+        <span className="font-semibold text-gray-900 dark:text-white">{formatCurrency(row.original.montant || row.original.totalAmount || 0)}</span>
       ),
     },
     {
-      accessorKey: 'requestedAt',
+      accessorKey: 'created_at',
       header: 'Demandée le',
       cell: ({ row }) => (
-        <span className="text-sm text-gray-500 dark:text-gray-400">{formatDate(row.original.requestedAt)}</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">{formatDate(row.original.created_at || row.original.requestedAt)}</span>
       ),
     },
     {
-      accessorKey: 'preferredAt',
+      accessorKey: 'date_souhaitee',
       header: 'Livraison souhaitée',
       cell: ({ row }) => (
         <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
           <Clock className="h-4 w-4 text-gray-400" />
-          {formatDate(row.original.preferredAt)}
+          {formatDate(row.original.date_souhaitee || row.original.preferredAt)}
         </div>
       ),
     },
     {
-      accessorKey: 'assignedAgentName',
+      accessorKey: 'agent_name',
       header: 'Agent assigné',
       cell: ({ row }) => {
         const order = row.original;
-        if (order.assignedAgentId) {
-          const agent = agents.find(a => a.id === order.assignedAgentId);
+        const agentId = order.agent || order.assignedAgentId;
+        const agentName = order.agent_name || order.assignedAgentName;
+
+        if (agentId) {
+          const agent = agents.find(a => a.id === agentId);
           return (
             <div className="flex items-center gap-2">
               <div className="relative h-7 w-7 rounded-full overflow-hidden bg-gray-100">
                 {agent?.photoUrl && (
                   <Image
                     src={agent.photoUrl}
-                    alt={order.assignedAgentName || ''}
+                    alt={agentName || ''}
                     fill
                     className="object-cover"
                   />
                 )}
               </div>
-              <span className="text-sm text-gray-900 dark:text-white">{order.assignedAgentName}</span>
+              <span className="text-sm text-gray-900 dark:text-white">{agentName}</span>
             </div>
           );
         }
@@ -158,20 +203,21 @@ function OrdersPage() {
       },
     },
     {
-      accessorKey: 'status',
+      accessorKey: 'statut',
       header: 'Statut',
       cell: ({ row }) => {
-        const status = row.original.status;
+        const statusKey = (row.original.statut || row.original.status || 'pending') as keyof typeof statusConfig;
+        const config = statusConfig[statusKey] || statusConfig.pending;
         return (
-          <Badge className={cn('text-xs font-medium', statusConfig[status].class)}>
-            {statusConfig[status].label}
+          <Badge className={cn('text-xs font-medium', config.class)}>
+            {config.label}
           </Badge>
         );
       },
     },
   ];
 
-  const pendingCount = orders.filter(o => o.status === 'pending').length;
+  const pendingCount = orders.filter(o => (o.statut === 'pending' || o.status === 'pending')).length;
 
   return (
     <div className="space-y-6">
@@ -205,9 +251,83 @@ function OrdersPage() {
         columns={columns}
         data={orders}
         searchPlaceholder="Rechercher une commande..."
-        onExport={() => console.log('Export orders')}
+        onExport={async () => {
+          try {
+            const blob = await reportsService.export('csv', { type: 'orders' });
+            const file = new Blob([blob], { type: 'text/csv;charset=utf-8' });
+            saveAs(file, `commandes-${new Date().toISOString().slice(0, 10)}.csv`);
+          } catch (err) {
+            console.error('export orders failed', err);
+            alert('Impossible d\'exporter les commandes.');
+          }
+        }}
         loading={loading}
       />
+
+      {/* Assignment Modal */}
+      {isAssignOpen && selectedOrder && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+              Assigner un agent
+            </h3>
+
+            <div className="mb-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                Commande: <span className="font-mono">{selectedOrder.id}</span>
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Client: <span className="font-medium text-gray-900 dark:text-white">{selectedOrder.clientName}</span>
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Sélectionner un agent
+              </label>
+              <select
+                value={selectedAgentId}
+                onChange={(e) => setSelectedAgentId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">-- Choisir un agent --</option>
+                {agents.map((agent) => {
+                  const user = agent.user || agent;
+                  const displayName = user.first_name && user.last_name
+                    ? `${user.first_name} ${user.last_name}`
+                    : user.username || `Agent #${agent.id}`;
+                  return (
+                    <option key={agent.id} value={user.id}>
+                      {displayName}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setIsAssignOpen(false);
+                  setSelectedOrder(null);
+                  setSelectedAgentId('');
+                }}
+                className="flex-1 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                disabled={assigning}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSubmitAssignment}
+                disabled={!selectedAgentId || assigning}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {assigning ? 'Assignation...' : 'Assigner'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 

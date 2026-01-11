@@ -8,11 +8,17 @@ export interface DashboardStats {
         active_agents: number;
         active_clients: number;
         active_tricycles: number;
+        avg_delivery_time: number;
     };
     charts: {
         revenue: Array<{ month: string; revenue: number }>;
         deliveries: Array<{ day: string; deliveries: number }>;
     };
+    agent_performance: Array<{
+        name: string;
+        deliveries: number;
+        photo: string | null;
+    }>;
 }
 
 export const dashboardService = {

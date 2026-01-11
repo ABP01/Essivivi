@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+// Ensure NEXT_PUBLIC_API_URL may be provided without the trailing /api
+const _rawBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const base = _rawBase.endsWith('/api') ? _rawBase : _rawBase.replace(/\/+$/, '') + '/api';
+
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api',
+    baseURL: base,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -36,7 +40,7 @@ api.interceptors.response.use(
                 const refreshToken = localStorage.getItem('refresh_token');
                 if (refreshToken) {
                     // Attempt refresh using plain axios to avoid interceptor loop
-                    const refreshUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/token/refresh/`;
+                    const refreshUrl = `${base}/token/refresh/`;
                     const resp = await axios.post(refreshUrl, { refresh: refreshToken });
                     if (resp?.data?.access) {
                         localStorage.setItem('access_token', resp.data.access);
@@ -49,9 +53,12 @@ api.interceptors.response.use(
                 // Refresh failed
             }
 
+            // Clear tokens but do not perform a hard redirect here.
+            // Let the UI (RequireAuth or pages) handle navigation so users
+            // already on protected pages aren't unexpectedly bounced.
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
-            window.location.href = '/login';
+            return Promise.reject(error);
         }
         return Promise.reject(error);
     }

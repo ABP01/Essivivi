@@ -7,7 +7,8 @@ import { notifications } from '@/lib/essivi-mock';
 import { cn } from '@/lib/utils';
 import { Bell, Menu, RefreshCw, Search, Wifi, WifiOff } from 'lucide-react';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import usersService from '@/services/users.service';
 
 interface EssiviHeaderProps {
   onMenuClick?: () => void;
@@ -25,6 +26,23 @@ export function EssiviHeader({ onMenuClick, showMenuButton = false }: EssiviHead
     setIsSyncing(true);
     setTimeout(() => setIsSyncing(false), 2000);
   };
+
+  const [adminName, setAdminName] = useState<string>('Admin User');
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const u = await usersService.getCurrentUser();
+        if (!mounted) return;
+        const name = (u?.first_name || u?.username || '') + (u?.last_name ? ` ${u.last_name}` : '');
+        setAdminName(name || 'Admin User');
+      } catch (e) {
+        // keep default
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 lg:px-6">
@@ -121,7 +139,7 @@ export function EssiviHeader({ onMenuClick, showMenuButton = false }: EssiviHead
         </div>
 
         {/* User Menu */}
-        <div className="relative">
+        <div className="relative ml-auto">
           <Button 
             variant="ghost" 
             className="flex items-center gap-2 px-2"
@@ -137,7 +155,7 @@ export function EssiviHeader({ onMenuClick, showMenuButton = false }: EssiviHead
               />
             </div>
             <div className="hidden md:block text-left">
-              <p className="text-sm font-medium">Admin User</p>
+              <p className="text-sm font-medium">{adminName}</p>
               <p className="text-xs text-gray-500">Super Admin</p>
             </div>
           </Button>

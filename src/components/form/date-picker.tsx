@@ -13,6 +13,7 @@ type PropsType = {
   defaultDate?: DateOption;
   label?: string;
   placeholder?: string;
+  minDate?: DateOption;
 };
 
 export default function DatePicker({
@@ -31,6 +32,7 @@ export default function DatePicker({
       dateFormat: "Y-m-d",
       defaultDate,
       onChange,
+      minDate: (typeof minDate !== 'undefined') ? minDate : undefined,
     });
 
     return () => {

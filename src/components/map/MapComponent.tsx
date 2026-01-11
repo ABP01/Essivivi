@@ -71,9 +71,9 @@ export default function MapComponent() {
 
                 const customIcon = L.divIcon({
                     className: 'custom-marker',
-                        html: (() => {
-                            const img = agent.photoUrl ? `<img src="${agent.photoUrl}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" alt="${agent.firstname}"/>` : `<div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;">?</div>`;
-                            return `
+                    html: (() => {
+                        const img = agent.photoUrl ? `<img src="${agent.photoUrl}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" alt="${agent.firstname}"/>` : `<div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;">?</div>`;
+                        return `
                         <div style="
                             background: ${statusColor};
                             width: 40px;
@@ -86,7 +86,7 @@ export default function MapComponent() {
                             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
                         ">${img}</div>
                     `;
-                        })(),
+                    })(),
                     iconSize: [40, 40],
                     iconAnchor: [20, 20],
                 });
@@ -185,22 +185,53 @@ export default function MapComponent() {
     // Fetch data
     useEffect(() => {
         let mounted = true;
-        (async () => {
+
+        const fetchData = async () => {
             try {
-                const [agentsResp, clientsResp, deliveriesResp] = await Promise.all([
-                    usersService.getAgents(),
+                const [agentLocations, clientsResp, deliveriesResp] = await Promise.all([
+                    logisticsService.getAgentLocations(), // Utiliser le nouvel endpoint
                     usersService.getClients(),
                     salesService.getLivraisons(),
                 ]);
+
                 if (!mounted) return;
-                if (Array.isArray(agentsResp)) setAgents(agentsResp);
+
+                // Transformer les données des agents pour correspondre au format attendu
+                if (Array.isArray(agentLocations)) {
+                    const transformedAgents = agentLocations.map((agent: any) => ({
+                        id: agent.agent_id,
+                        firstname: agent.agent_name?.split(' ')[0] || 'Agent',
+                        lastname: agent.agent_name?.split(' ').slice(1).join(' ') || '',
+                        lat: agent.latitude,
+                        lng: agent.longitude,
+                        status: agent.is_online ? (agent.current_deliveries > 0 ? 'on_delivery' : 'active') : 'inactive',
+                        totalDeliveries: agent.current_deliveries || 0,
+                        phone: agent.agent_phone,
+                        photoUrl: null, // Pas de photo pour l'instant
+                        tricycle: null,
+                        lastUpdate: agent.last_location_update,
+                        speed: agent.current_speed,
+                        heading: agent.heading,
+                    }));
+                    setAgents(transformedAgents);
+                }
+
                 if (Array.isArray(clientsResp)) setClients(clientsResp);
                 if (Array.isArray(deliveriesResp)) setDeliveries(deliveriesResp);
             } catch (e) {
-                // fallback to empty
+                console.error('Error fetching map data:', e);
             }
-        })();
-        return () => { mounted = false };
+        };
+
+        fetchData();
+
+        // Rafraîchir les positions toutes les 10 secondes
+        const interval = setInterval(fetchData, 10000);
+
+        return () => {
+            mounted = false;
+            clearInterval(interval);
+        };
     }, []);
 
     return (

@@ -44,7 +44,7 @@ export const usersService = {
             throw e;
         }
     },
-    
+
     // Resolve an agent by numeric id or by username identifier (handles URLs like /agents/<username>/edit)
     async getAgentByIdentifier(idOrUsername: string) {
         // try numeric id/profile id first but be resilient
@@ -152,7 +152,27 @@ export const usersService = {
     async updateClient(id: string, payload: any) {
         const resp = await api.patch(`/users/clients/${id}/`, payload);
         return resp.data;
-    }
+    },
+
+    // Préférences utilisateur
+    async getUserPreferences() {
+        const resp = await api.get('/users/preferences/');
+        return resp.data;
+    },
+
+    async updateUserPreferences(data: any) {
+        const resp = await api.put('/users/preferences/', data);
+        return resp.data;
+    },
+
+    // Changement de mot de passe
+    async changePassword(oldPassword: string, newPassword: string) {
+        const resp = await api.post('/users/auth/change-password/', {
+            old_password: oldPassword,
+            new_password: newPassword,
+        });
+        return resp.data;
+    },
 };
 
 export default usersService;

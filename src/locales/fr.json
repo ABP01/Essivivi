@@ -1,0 +1,17 @@
+{
+  "app.title": "ESSIVI-Sarl",
+  "app.subtitle": "Système de gestion de distribution d'eau",
+  "already_registered": "Êtes-vous déjà inscrit ?",
+  "yes_login": "Oui, se connecter",
+  "no_create_account": "Non, créer un compte",
+  "test_account": "Compte de test (créé sur le serveur) :",
+  "username_label": "Identifiant (Username)",
+  "username_placeholder": "Ex: elom",
+  "password_label": "Mot de passe",
+  "password_placeholder": "••••••••",
+  "login_button": "Se connecter",
+  "login_loading": "Connexion...",
+  "create_account": "Créer un compte",
+  "incorrect_credentials": "Identifiant incorrect",
+  "generic_login_error": "Identifiants incorrects ou erreur de connexion."
+}

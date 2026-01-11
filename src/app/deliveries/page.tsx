@@ -11,10 +11,14 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import salesService from '@/services/sales.service';
 import usersService from '@/services/users.service';
+import reportsService from '@/services/reports.service';
+import { saveAs } from 'file-saver';
 
 const statusConfig = {
   pending: { label: 'En attente', class: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+  validated: { label: 'Validée', class: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
   in_progress: { label: 'En cours', class: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+  delivered: { label: 'Livrée', class: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
   completed: { label: 'Terminée', class: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
   cancelled: { label: 'Annulée', class: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
 };
@@ -123,13 +127,22 @@ function DeliveriesPage() {
       accessorKey: 'quantity',
       header: 'Quantité',
       cell: ({ row }) => {
-        const q = row.original.quantity;
+        const delivery = row.original;
+        const q = delivery.quantity;
+        if (q && typeof q === 'object') {
+          return (
+            <div className="flex items-center gap-2">
+              <Package className="h-4 w-4 text-gray-400" />
+              <span className="text-sm text-gray-900 dark:text-white">
+                V: {q.vitale || 0} | Vol: {q.voltic || 0} | A: {q.other || 0}
+              </span>
+            </div>
+          );
+        }
         return (
           <div className="flex items-center gap-2">
             <Package className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-900 dark:text-white">
-              V: {q.vitale} | Vol: {q.voltic} | A: {q.other}
-            </span>
+            <span className="text-sm text-gray-900 dark:text-white">Eau Essivi</span>
           </div>
         );
       },
@@ -170,10 +183,11 @@ function DeliveriesPage() {
       accessorKey: 'status',
       header: 'Statut',
       cell: ({ row }) => {
-        const status = row.original.status;
+        const status = row.original.status as keyof typeof statusConfig;
+        const config = statusConfig[status] || { label: status || 'Inconnu', class: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' };
         return (
-          <Badge className={cn('text-xs font-medium', statusConfig[status].class)}>
-            {statusConfig[status].label}
+          <Badge className={cn('text-xs font-medium', config.class)}>
+            {config.label}
           </Badge>
         );
       },
@@ -194,13 +208,13 @@ function DeliveriesPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="p-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
-            {deliveries.filter(d => d.status === 'completed').length}
+            {deliveries.filter(d => d.status === 'completed' || d.status === 'delivered').length}
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">Terminées</p>
         </div>
         <div className="p-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
           <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            {deliveries.filter(d => d.status === 'in_progress').length}
+            {deliveries.filter(d => d.status === 'in_progress' || d.status === 'validated').length}
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">En cours</p>
         </div>
@@ -223,7 +237,16 @@ function DeliveriesPage() {
         columns={columns}
         data={deliveries}
         searchPlaceholder="Rechercher une livraison..."
-        onExport={() => console.log('Export deliveries')}
+        onExport={async () => {
+          try {
+            const blob = await reportsService.export('csv', { type: 'deliveries' });
+            const file = new Blob([blob], { type: 'text/csv;charset=utf-8' });
+            saveAs(file, `livraisons-${new Date().toISOString().slice(0, 10)}.csv`);
+          } catch (err) {
+            console.error('export deliveries failed', err);
+            alert('Impossible d\'exporter les livraisons.');
+          }
+        }}
         loading={loading}
       />
     </div>

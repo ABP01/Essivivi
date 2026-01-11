@@ -40,6 +40,7 @@ function ReportsPage() {
               id="reports-period"
               mode="range"
               defaultDate={[dateRange.from, dateRange.to]}
+              minDate={new Date()}
               onChange={(selectedDates: Date[]) => {
                 const from = selectedDates && selectedDates[0] ? selectedDates[0] : dateRange.from;
                 const to = selectedDates && selectedDates[1] ? selectedDates[1] : (selectedDates && selectedDates[0] ? selectedDates[0] : dateRange.to);

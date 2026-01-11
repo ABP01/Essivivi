@@ -34,37 +34,31 @@ function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
   return (
     <div className="relative">
       <button
-        onClick={toggleDropdown} 
-        className="flex items-center text-gray-700 dark:text-gray-400 dropdown-toggle"
+        onClick={toggleDropdown}
+        className="flex items-center text-gray-700 dark:text-gray-400 dropdown-toggle space-x-3"
       >
-        <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
-          <Image
-            width={44}
-            height={44}
-            src="/images/user/owner.jpg"
-            alt="User"
-          />
+        <span className="overflow-hidden rounded-full h-10 w-10">
+          <Image width={40} height={40} src="/images/user/owner.jpg" alt="User" />
         </span>
 
-        <span className="block mr-1 font-medium text-theme-sm">{user?.username ?? 'Utilisateur'}</span>
+        <div className="flex flex-col text-left">
+          <span className="font-semibold text-gray-800 dark:text-gray-200 text-sm">
+            {user?.first_name || user?.username || 'Utilisateur'} {user?.last_name ? user.last_name : ''}
+          </span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {user?.is_superuser ? 'Super Admin' : 'Utilisateur'}
+          </span>
+        </div>
 
         <svg
-          className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
           width="18"
           height="20"
           viewBox="0 0 18 20"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <path
-            d="M4.3125 8.65625L9 13.3437L13.6875 8.65625"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+          <path d="M4.3125 8.65625L9 13.3437L13.6875 8.65625" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
 

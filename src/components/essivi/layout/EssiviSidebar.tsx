@@ -19,6 +19,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { authService } from '@/services/auth.service';
 
 const navItems = [
   { path: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
@@ -38,6 +39,10 @@ interface EssiviSidebarProps {
 
 export function EssiviSidebar({ collapsed = false, onToggle }: EssiviSidebarProps) {
   const pathname = usePathname();
+
+  const handleLogout = () => {
+    authService.logout();
+  };
 
   return (
     <aside
@@ -111,7 +116,9 @@ export function EssiviSidebar({ collapsed = false, onToggle }: EssiviSidebarProp
             <Button
               variant="ghost"
               size="icon"
+              onClick={handleLogout}
               className="h-8 w-8 text-gray-400 hover:text-white hover:bg-gray-800"
+              title="Déconnexion"
             >
               <LogOut className="h-4 w-4" />
             </Button>
