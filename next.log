@@ -1,0 +1,344 @@
+
+> free-nextjs-admin-dashboard@2.2.1 dev
+> next dev --port 3000
+
+   ▲ Next.js 16.0.7 (Turbopack)
+   - Local:         http://localhost:3000
+   - Network:       http://192.168.1.97:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1479ms
+ ○ Compiling /dashboard ...
+ GET /dashboard 200 in 8.2s (compile: 7.7s, render: 486ms)
+ GET /dashboard 200 in 117ms (compile: 6ms, render: 111ms)
+ GET /dashboard 200 in 83ms (compile: 4ms, render: 79ms)
+ GET /dashboard 200 in 102ms (compile: 5ms, render: 98ms)
+ GET /dashboard 200 in 83ms (compile: 6ms, render: 77ms)
+ GET /dashboard 200 in 91ms (compile: 6ms, render: 85ms)
+ ✓ Compiled in 1902ms
+ ⨯ ./src/app/dashboard/page.tsx:5:25
+Ecmascript file had an error
+[0m [90m 3 |[39m [36mimport[39m dynamic [36mfrom[39m [32m'next/dynamic'[39m[33m;[39m
+ [90m 4 |[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mconst[39m [33mClientDashboard[39m [33m=[39m dynamic(() [33m=>[39m [36mimport[39m([32m'./page.client'[39m)[33m,[39m { ssr[33m:[39m [36mfalse[39m })[33m;[39m
+ [90m   |[39m                         [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mPage[39m() {
+ [90m 8 |[39m   [36mconst[39m cookieStore [33m=[39m cookies()[33m;[39m[0m
+
+`ssr: false` is not allowed with `next/dynamic` in Server Components. Please move it into a Client Component.
+
+
+ GET /dashboard 500 in 2.3s (compile: 2.0s, render: 312ms)
+ ✓ Compiled in 1300ms
+Error: Route "/dashboard" used `cookies().get`. `cookies()` returns a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at Page (src/app/dashboard/page.tsx:7:29)
+   5 | export default function Page() {
+   6 |   const cookieStore = cookies();
+>  7 |   const token = cookieStore.get('access_token')?.value;
+     |                             ^
+   8 |   if (!token) {
+   9 |     redirect('/login');
+  10 |   }
+ ⨯ TypeError: cookieStore.get is not a function
+    at Page (src/app/dashboard/page.tsx:7:29)
+   5 | export default function Page() {
+   6 |   const cookieStore = cookies();
+>  7 |   const token = cookieStore.get('access_token')?.value;
+     |                             ^
+   8 |   if (!token) {
+   9 |     redirect('/login');
+  10 |   } {
+  digest: '3499213576'
+}
+ GET /dashboard 200 in 322ms (compile: 202ms, render: 120ms)
+Error: Route "/dashboard" used `cookies().get`. `cookies()` returns a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at Page (src/app/dashboard/page.tsx:7:29)
+   5 | export default function Page() {
+   6 |   const cookieStore = cookies();
+>  7 |   const token = cookieStore.get('access_token')?.value;
+     |                             ^
+   8 |   if (!token) {
+   9 |     redirect('/login');
+  10 |   }
+ ⨯ TypeError: cookieStore.get is not a function
+    at Page (src/app/dashboard/page.tsx:7:29)
+   5 | export default function Page() {
+   6 |   const cookieStore = cookies();
+>  7 |   const token = cookieStore.get('access_token')?.value;
+     |                             ^
+   8 |   if (!token) {
+   9 |     redirect('/login');
+  10 |   } {
+  digest: '3499213576'
+}
+ GET /dashboard 500 in 277ms (compile: 6ms, render: 271ms)
+Error: Route "/dashboard" used `cookies().get`. `cookies()` returns a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at Page (src/app/dashboard/page.tsx:7:29)
+   5 | export default function Page() {
+   6 |   const cookieStore = cookies();
+>  7 |   const token = cookieStore.get('access_token')?.value;
+     |                             ^
+   8 |   if (!token) {
+   9 |     redirect('/login');
+  10 |   }
+ ⨯ TypeError: cookieStore.get is not a function
+    at Page (src/app/dashboard/page.tsx:7:29)
+   5 | export default function Page() {
+   6 |   const cookieStore = cookies();
+>  7 |   const token = cookieStore.get('access_token')?.value;
+     |                             ^
+   8 |   if (!token) {
+   9 |     redirect('/login');
+  10 |   } {
+  digest: '3499213576'
+}
+ GET /dashboard 500 in 87ms (compile: 4ms, render: 83ms)
+Error: Route "/dashboard" used `cookies().get`. `cookies()` returns a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at Page (src/app/dashboard/page.tsx:7:29)
+   5 | export default function Page() {
+   6 |   const cookieStore = cookies();
+>  7 |   const token = cookieStore.get('access_token')?.value;
+     |                             ^
+   8 |   if (!token) {
+   9 |     redirect('/login');
+  10 |   }
+ ⨯ TypeError: cookieStore.get is not a function
+    at Page (src/app/dashboard/page.tsx:7:29)
+   5 | export default function Page() {
+   6 |   const cookieStore = cookies();
+>  7 |   const token = cookieStore.get('access_token')?.value;
+     |                             ^
+   8 |   if (!token) {
+   9 |     redirect('/login');
+  10 |   } {
+  digest: '3499213576'
+}
+ GET /dashboard 500 in 84ms (compile: 5ms, render: 79ms)
+Error: Route "/dashboard" used `headers().get`. `headers()` returns a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at Page (src/app/dashboard/page.tsx:6:31)
+  4 |
+  5 | export default function Page() {
+> 6 |   const cookieHeader = headers().get('cookie') || '';
+    |                               ^
+  7 |   const hasToken = cookieHeader
+  8 |     .split(';')
+  9 |     .map((c) => c.trim())
+ ⨯ TypeError: {imported module ./nodemodules/next/headers.js}.headers(...).get is not a function
+    at Page (src/app/dashboard/page.tsx:6:34)
+  4 |
+  5 | export default function Page() {
+> 6 |   const cookieHeader = headers().get('cookie') || '';
+    |                                  ^
+  7 |   const hasToken = cookieHeader
+  8 |     .split(';')
+  9 |     .map((c) => c.trim()) {
+  digest: '3828315737'
+}
+ GET /dashboard 500 in 377ms (compile: 129ms, render: 247ms)
+Error: Route "/dashboard" used `headers().get`. `headers()` returns a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at Page (src/app/dashboard/page.tsx:6:31)
+  4 |
+  5 | export default function Page() {
+> 6 |   const cookieHeader = headers().get('cookie') || '';
+    |                               ^
+  7 |   const hasToken = cookieHeader
+  8 |     .split(';')
+  9 |     .map((c) => c.trim())
+ ⨯ TypeError: {imported module ./nodemodules/next/headers.js}.headers(...).get is not a function
+    at Page (src/app/dashboard/page.tsx:6:34)
+  4 |
+  5 | export default function Page() {
+> 6 |   const cookieHeader = headers().get('cookie') || '';
+    |                                  ^
+  7 |   const hasToken = cookieHeader
+  8 |     .split(';')
+  9 |     .map((c) => c.trim()) {
+  digest: '3828315737'
+}
+ GET /dashboard 500 in 82ms (compile: 4ms, render: 78ms)
+Error: Route "/dashboard" used `headers().get`. `headers()` returns a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at Page (src/app/dashboard/page.tsx:6:31)
+  4 |
+  5 | export default function Page() {
+> 6 |   const cookieHeader = headers().get('cookie') || '';
+    |                               ^
+  7 |   const hasToken = cookieHeader
+  8 |     .split(';')
+  9 |     .map((c) => c.trim())
+ ⨯ TypeError: {imported module ./nodemodules/next/headers.js}.headers(...).get is not a function
+    at Page (src/app/dashboard/page.tsx:6:34)
+  4 |
+  5 | export default function Page() {
+> 6 |   const cookieHeader = headers().get('cookie') || '';
+    |                                  ^
+  7 |   const hasToken = cookieHeader
+  8 |     .split(';')
+  9 |     .map((c) => c.trim()) {
+  digest: '3828315737'
+}
+ GET /dashboard 500 in 74ms (compile: 3ms, render: 71ms)
+Error: Route "/dashboard" used `headers().get`. `headers()` returns a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at Page (src/app/dashboard/page.tsx:6:31)
+  4 |
+  5 | export default function Page() {
+> 6 |   const cookieHeader = headers().get('cookie') || '';
+    |                               ^
+  7 |   const hasToken = cookieHeader
+  8 |     .split(';')
+  9 |     .map((c) => c.trim())
+ ⨯ TypeError: {imported module ./nodemodules/next/headers.js}.headers(...).get is not a function
+    at Page (src/app/dashboard/page.tsx:6:34)
+  4 |
+  5 | export default function Page() {
+> 6 |   const cookieHeader = headers().get('cookie') || '';
+    |                                  ^
+  7 |   const hasToken = cookieHeader
+  8 |     .split(';')
+  9 |     .map((c) => c.trim()) {
+  digest: '3828315737'
+}
+ GET /dashboard 500 in 92ms (compile: 3ms, render: 88ms)
+Error: Route "/dashboard" used `headers().get`. `headers()` returns a Promise and must be unwrapped with `await` or `React.use()` before accessing its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at Page (src/app/dashboard/page.tsx:6:31)
+  4 |
+  5 | export default function Page() {
+> 6 |   const cookieHeader = headers().get('cookie') || '';
+    |                               ^
+  7 |   const hasToken = cookieHeader
+  8 |     .split(';')
+  9 |     .map((c) => c.trim())
+ ⨯ TypeError: {imported module ./nodemodules/next/headers.js}.headers(...).get is not a function
+    at Page (src/app/dashboard/page.tsx:6:34)
+  4 |
+  5 | export default function Page() {
+> 6 |   const cookieHeader = headers().get('cookie') || '';
+    |                                  ^
+  7 |   const hasToken = cookieHeader
+  8 |     .split(';')
+  9 |     .map((c) => c.trim()) {
+  digest: '3828315737'
+}
+ GET /dashboard 500 in 71ms (compile: 3ms, render: 68ms)
+ GET /dashboard 200 in 869ms (compile: 191ms, render: 679ms)
+ GET /dashboard 200 in 76ms (compile: 3ms, render: 73ms)
+ GET /dashboard 200 in 94ms (compile: 4ms, render: 90ms)
+ GET /dashboard 200 in 67ms (compile: 3ms, render: 65ms)
+ GET /dashboard 200 in 74ms (compile: 4ms, render: 70ms)
+ GET /dashboard 200 in 90ms (compile: 6ms, render: 84ms)
+ GET / 200 in 878ms (compile: 804ms, render: 74ms)
+ GET /login 200 in 672ms (compile: 624ms, render: 48ms)
+ GET /login 200 in 718ms (compile: 693ms, render: 25ms)
+ GET /login 200 in 671ms (compile: 592ms, render: 79ms)
+ GET /dashboard 200 in 65ms (compile: 3ms, render: 62ms)
+ GET /dashboard 200 in 66ms (compile: 2ms, render: 63ms)
+ GET /dashboard 200 in 58ms (compile: 2ms, render: 56ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /reports 200 in 2.9s (compile: 2.7s, render: 213ms)
+ ✓ Compiled in 122ms
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /reports 200 in 463ms (compile: 118ms, render: 345ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /reports 200 in 54ms (compile: 1769µs, render: 52ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /reports 200 in 59ms (compile: 3ms, render: 57ms)
+ GET / 200 in 63ms (compile: 10ms, render: 53ms)
+ GET /login 200 in 257ms (compile: 150ms, render: 107ms)
+ GET /login 200 in 57ms (compile: 25ms, render: 32ms)
+ GET /login 200 in 59ms (compile: 4ms, render: 55ms)
+ GET /dashboard 200 in 140ms (compile: 4ms, render: 136ms)
+ GET / 200 in 67ms (compile: 3ms, render: 64ms)
+ GET /login 200 in 26ms (compile: 2ms, render: 23ms)
+ GET /login 200 in 58ms (compile: 4ms, render: 55ms)
+ GET /login 200 in 28ms (compile: 4ms, render: 23ms)
+ GET /dashboard 200 in 56ms (compile: 3ms, render: 53ms)
+ GET / 200 in 74ms (compile: 4ms, render: 70ms)
+ GET /login 200 in 32ms (compile: 3ms, render: 29ms)
+ GET /login 200 in 60ms (compile: 5ms, render: 56ms)
+ GET /login 200 in 35ms (compile: 3ms, render: 32ms)
+ GET /dashboard 200 in 72ms (compile: 3ms, render: 69ms)
+ GET /dashboard 200 in 99ms (compile: 6ms, render: 93ms)
+ ✓ Compiled in 591ms
+ ✓ Compiled in 227ms
+ GET /dashboard 200 in 608ms (compile: 156ms, render: 452ms)
+ GET /login 200 in 460ms (compile: 211ms, render: 250ms)
+ GET /login 200 in 142ms (compile: 3ms, render: 139ms)
+ GET /dashboard 200 in 82ms (compile: 4ms, render: 79ms)
+ GET /dashboard 200 in 64ms (compile: 2ms, render: 62ms)
+ GET / 200 in 73ms (compile: 24ms, render: 49ms)
+ GET /login 200 in 33ms (compile: 4ms, render: 29ms)
+ GET /login 200 in 65ms (compile: 35ms, render: 30ms)
+ GET /login 200 in 67ms (compile: 5ms, render: 62ms)
+ ✓ Compiled in 184ms
+ GET /login 200 in 341ms (compile: 97ms, render: 244ms)
+ GET /login 200 in 47ms (compile: 3ms, render: 44ms)
+ GET /login 200 in 47ms (compile: 2ms, render: 45ms)
+ ✓ Compiled in 113ms
+ GET /login 200 in 289ms (compile: 102ms, render: 187ms)
+ GET /dashboard 200 in 60ms (compile: 4ms, render: 56ms)
+ GET /dashboard 200 in 75ms (compile: 6ms, render: 69ms)
+ GET /login 200 in 84ms (compile: 3ms, render: 81ms)
+ GET /login 200 in 87ms (compile: 6ms, render: 80ms)
+ GET /login 200 in 88ms (compile: 5ms, render: 84ms)
+ GET /dashboard 200 in 58ms (compile: 4ms, render: 54ms)
+ GET / 200 in 130ms (compile: 40ms, render: 90ms)
+ GET /login 200 in 39ms (compile: 5ms, render: 34ms)
+ GET /dashboard 200 in 76ms (compile: 11ms, render: 64ms)
+ GET / 200 in 85ms (compile: 2ms, render: 83ms)
+ GET /login 200 in 45ms (compile: 7ms, render: 38ms)
+ GET /login 200 in 97ms (compile: 7ms, render: 90ms)
+ GET /login 200 in 46ms (compile: 11ms, render: 35ms)
+ GET /dashboard 200 in 55ms (compile: 3ms, render: 52ms)
+ GET /agents 200 in 1303ms (compile: 1270ms, render: 33ms)
+ GET /agents/8 200 in 1253ms (compile: 1219ms, render: 34ms)
+ GET /agents 200 in 25ms (compile: 5ms, render: 20ms)
+ GET /agents/8/edit 200 in 1132ms (compile: 1105ms, render: 27ms)
+ GET /clients 200 in 645ms (compile: 621ms, render: 24ms)
+ GET /deliveries 200 in 565ms (compile: 523ms, render: 42ms)
+ GET /orders 200 in 566ms (compile: 542ms, render: 24ms)
+ GET /reports 200 in 234ms (compile: 191ms, render: 43ms)

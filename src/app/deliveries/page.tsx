@@ -38,14 +38,36 @@ function DeliveriesPage() {
     const load = async () => {
       setLoading(true);
       try {
-        const [data, agentsResp] = await Promise.all([
-          salesService.getLivraisons(),
+        const [commandesData, agentsResp] = await Promise.all([
+          salesService.getCommandes(), // Fetch commandes instead of livraisons
           usersService.getAgents(),
         ]);
-        if (mounted && Array.isArray(data)) setDeliveries(data);
-        if (mounted && Array.isArray(agentsResp)) setAgents(agentsResp);
+
+        // Transform commandes to delivery format
+        const transformedDeliveries = Array.isArray(commandesData) ? commandesData.map((cmd: any) => ({
+          id: String(cmd.id),
+          agentId: cmd.agent ? String(cmd.agent) : '',
+          agentName: cmd.agent_name || '',
+          clientId: String(cmd.client),
+          clientPhone: cmd.client_phone || '',
+          clientName: cmd.client_name || `Client ${cmd.client}`,
+          address: '', // Could add from client profile later
+          lat: 0,
+          lng: 0,
+          amount: parseFloat(cmd.montant) || 0,
+          photoUrl: undefined,
+          signatureUrl: undefined,
+          timestamp: cmd.created_at,
+          status: cmd.statut, // pending, validated, delivered, cancelled
+        })) : [];
+
+        if (mounted) {
+          setDeliveries(transformedDeliveries);
+          if (Array.isArray(agentsResp)) setAgents(agentsResp);
+        }
       } catch (e) {
-        // fallback to mockDeliveries
+        console.error('Failed to load deliveries:', e);
+        // fallback to empty array
       } finally {
         if (mounted) setLoading(false);
       }
@@ -208,13 +230,13 @@ function DeliveriesPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="p-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
-            {deliveries.filter(d => d.status === 'completed' || d.status === 'delivered').length}
+            {deliveries.filter(d => d.status === 'delivered').length}
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">Terminées</p>
         </div>
         <div className="p-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
           <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            {deliveries.filter(d => d.status === 'in_progress' || d.status === 'validated').length}
+            {deliveries.filter(d => d.status === 'validated').length}
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">En cours</p>
         </div>

@@ -2,7 +2,6 @@
 
 import RequireAuth from '@/components/auth/RequireAuth';
 import { DeliveryBarChart, DeliveryDonutChart, RevenueChart } from '@/components/essivi/dashboard';
-import { revenueChartData } from '@/lib/essivi-mock';
 import { Card } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -10,13 +9,30 @@ import { BarChart3, CalendarIcon, Download, FileSpreadsheet, FileText } from 'lu
 import DatePicker from '@/components/form/date-picker';
 import reportsService from '@/services/reports.service';
 import { saveAs } from 'file-saver';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { dashboardService, DashboardStats } from '@/services/dashboard.service';
 
 function ReportsPage() {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
     from: new Date(new Date().setMonth(new Date().getMonth() - 1)),
     to: new Date(),
   });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await dashboardService.getStats();
+        setStats(data);
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -39,7 +55,7 @@ function ReportsPage() {
             <DatePicker
               id="reports-period"
               mode="range"
-              defaultDate={[dateRange.from, dateRange.to]}
+              defaultDate={dateRange.from}
               minDate={new Date()}
               onChange={(selectedDates: Date[]) => {
                 const from = selectedDates && selectedDates[0] ? selectedDates[0] : dateRange.from;
@@ -140,8 +156,8 @@ function ReportsPage() {
                   saveAs(blob, `reports_${format(dateRange.from, 'yyyyMMdd')}_${format(dateRange.to, 'yyyyMMdd')}.csv`);
                 } catch (err) {
                   // fallback: generate CSV from client data (using revenueChartData)
-                  const rows = [['month', 'revenue', 'deliveries'], ...revenueChartData.map(r => [r.month, String(r.revenue), String(r.deliveries)])];
-                  const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
+                  const rows = [['month', 'revenue', 'deliveries'], ...(stats?.charts.revenue || []).map(r => [r.month, String(r.revenue), ''])];
+                  const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
                   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                   saveAs(blob, `reports_${format(dateRange.from, 'yyyyMMdd')}_${format(dateRange.to, 'yyyyMMdd')}.csv`);
                 }
@@ -156,8 +172,8 @@ function ReportsPage() {
 
       {/* Charts Preview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RevenueChart data={revenueChartData.map(r => ({ month: r.month, revenue: r.revenue }))} />
-        <DeliveryBarChart data={revenueChartData.map(r => ({ day: r.month, deliveries: r.deliveries }))} />
+        <RevenueChart data={stats?.charts.revenue || []} />
+        <DeliveryBarChart data={stats?.charts.deliveries || []} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -170,19 +186,25 @@ function ReportsPage() {
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">15,750,000</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {loading ? '...' : new Intl.NumberFormat('fr-FR').format(stats?.kpis.total_revenue || 0)}
+                </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Revenus (FCFA)</p>
               </div>
               <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">1,245</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {loading ? '...' : stats?.kpis.total_deliveries || 0}
+                </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Livraisons</p>
               </div>
               <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">42</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {loading ? '...' : stats?.kpis.active_clients || 0}
+                </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Clients actifs</p>
               </div>
               <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">94.5%</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">98%</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Satisfaction</p>
               </div>
             </div>
