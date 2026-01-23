@@ -6,12 +6,13 @@ import { Modal } from "../../ui/modal";
 import Label from "../../form/Label";
 import Input from "../../form/input/InputField";
 import { useModal } from "@/hooks/useModal";
+import { logger } from "@/lib/logger";
 
 export default function FormInModal() {
   const { isOpen, openModal, closeModal } = useModal();
   const handleSave = () => {
     // Handle save logic here
-    console.log("Saving changes...");
+    logger.debug("Saving changes...");
     closeModal();
   };
   return (

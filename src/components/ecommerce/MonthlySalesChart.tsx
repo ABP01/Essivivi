@@ -1,6 +1,6 @@
 "use client";
 import { MoreDotIcon } from "@/icons";
-import { revenueChartData } from "@/lib/essivi-mock";
+
 import { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
@@ -14,7 +14,7 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
 });
 
 export default function MonthlySalesChart() {
-  const [chartData, setChartData] = useState<any[]>(revenueChartData);
+  const [chartData, setChartData] = useState<any[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -28,6 +28,7 @@ export default function MonthlySalesChart() {
         }
       } catch (e) {
         // fallback to mock
+        setChartData([]);
       }
     })();
     return () => { mounted = false };

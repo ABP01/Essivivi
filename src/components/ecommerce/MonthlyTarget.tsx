@@ -1,6 +1,6 @@
 "use client";
 import { MoreDotIcon } from "@/icons";
-import { dashboardKPIs } from "@/lib/essivi-mock";
+
 import { useEffect, useState } from "react";
 import { dashboardService } from "@/services/dashboard.service";
 import { ApexOptions } from "apexcharts";
@@ -14,7 +14,7 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
 });
 
 // Calculate satisfaction rate as percentage (from API with mock fallback)
-const initialSatisfaction = dashboardKPIs.satisfactionRate;
+const initialSatisfaction = 0;
 
 // Format currency in XOF
 const formatCurrency = (value: number) => {
@@ -40,7 +40,7 @@ export default function MonthlyTarget() {
         setSatisfactionPercent(sat);
         setKpis(kpis ?? null);
       } catch (e) {
-        // keep mock value
+        // keep initial value
       }
     })();
     return () => { mounted = false };
@@ -155,11 +155,11 @@ export default function MonthlyTarget() {
           </div>
 
           <span className="absolute left-1/2 top-full -translate-x-1/2 -translate-y-[95%] rounded-full bg-success-50 px-3 py-1 text-xs font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500">
-            +{kpis ? kpis.deliveries_change ?? kpis.deliveriesChange ?? dashboardKPIs.deliveriesChange : dashboardKPIs.deliveriesChange}%
+            +{kpis ? kpis.deliveries_change ?? kpis.deliveriesChange ?? 0 : "—"}%
           </span>
         </div>
         <p className="mx-auto mt-10 w-full max-w-[380px] text-center text-sm text-gray-500 sm:text-base">
-          Excellente performance ! {kpis ? kpis.total_deliveries ?? kpis.totalDeliveries : dashboardKPIs.totalDeliveries} livraisons ce mois avec un temps moyen de {kpis ? kpis.avg_delivery_time ?? kpis.avgDeliveryTime : dashboardKPIs.avgDeliveryTime} min.
+          Excellente performance ! {kpis ? kpis.total_deliveries ?? kpis.totalDeliveries : "—"} livraisons ce mois avec un temps moyen de {kpis ? kpis.avg_delivery_time ?? kpis.avgDeliveryTime : "—"} min.
         </p>
       </div>
 
@@ -194,7 +194,7 @@ export default function MonthlyTarget() {
             Revenus
           </p>
           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            {formatCurrency(kpis ? kpis.total_revenue ?? kpis.totalRevenue : dashboardKPIs.totalRevenue)}
+            {formatCurrency(kpis ? kpis.total_revenue ?? kpis.totalRevenue : 0)}
             <svg
               width="16"
               height="16"
@@ -219,7 +219,7 @@ export default function MonthlyTarget() {
             En attente
           </p>
           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            {kpis ? kpis.total_pending_orders ?? kpis.pendingOrders ?? kpis.pending_orders ?? dashboardKPIs.pendingOrders : dashboardKPIs.pendingOrders}
+            {kpis ? kpis.total_pending_orders ?? kpis.pendingOrders ?? kpis.pending_orders ?? 0 : "—"}
             <svg
               width="16"
               height="16"

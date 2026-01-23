@@ -29,7 +29,7 @@ export default function EditClientPage() {
       if (!id) return;
       setLoading(true);
       try {
-        let data;
+        let data: any;
         try {
           data = await usersService.getClientById(id);
         } catch (e) {
@@ -38,11 +38,11 @@ export default function EditClientPage() {
         }
         if (!mounted) return;
         // debug: log raw response to help identify which fields are present
-        try { console.debug('[EditClient] fetched client data:', data); } catch (e) {}
+        try { console.debug('[EditClient] fetched client data:', data); } catch (e) { }
 
         // handle multiple possible API shapes (nested user or different naming)
         const user = data.user ?? data;
-        setUserId(user.id || null);
+        setUserId((user as any).id || null);
 
         // storeName: try many aliases
         const storeNameVal = data.storeName || data.store_name || data.nom_point_vente || data.company || data.name || user.username || '';

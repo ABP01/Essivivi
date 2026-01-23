@@ -3,7 +3,7 @@
 import RequireAuth from '@/components/auth/RequireAuth';
 import { DataTable } from '@/components/essivi/ui/DataTable';
 import { Badge } from '@/components/ui/badge';
-import { Agent, mockAgents } from '@/lib/essivi-mock';
+import { Agent } from '@/types/legacy_mock_types';
 import { useEffect, useState } from 'react';
 import usersService from '@/services/users.service';
 import { cn } from '@/lib/utils';
@@ -40,7 +40,7 @@ function AgentsPage() {
         }
       } catch (e) {
         // fallback to mockAgents
-        setAgents(mockAgents.map((m) => normalizeAgent(m)));
+        setAgents([]);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -249,7 +249,7 @@ function AgentsPage() {
             Gérez les agents de livraison ESSIVI
           </p>
         </div>
-        
+
         <button
           onClick={() => setIsAddOpen(true)}
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
@@ -274,7 +274,7 @@ function AgentsPage() {
           try {
             const blob = await reportsService.export('csv');
             const file = new Blob([blob], { type: 'text/csv;charset=utf-8' });
-            saveAs(file, `agents-${new Date().toISOString().slice(0,10)}.csv`);
+            saveAs(file, `agents-${new Date().toISOString().slice(0, 10)}.csv`);
           } catch (err) {
             console.error('export agents failed', err);
             alert('Impossible d\'exporter la liste des agents.');

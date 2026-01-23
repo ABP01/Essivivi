@@ -3,7 +3,7 @@
 import RequireAuth from '@/components/auth/RequireAuth';
 import { DataTable } from '@/components/essivi/ui/DataTable';
 import { Badge } from '@/components/ui/badge';
-import { Client, mockClients } from '@/lib/essivi-mock';
+import { Client } from '@/types/legacy_mock_types';
 import { cn } from '@/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import { Mail, MapPin, Phone, Plus, Store } from 'lucide-react';
@@ -41,13 +41,13 @@ function ClientsPage() {
           const map = new Map<string, Client>();
           const keyOf = (c: any) => c?.id || c?.email || c?.phone || c?.code || (c?.storeName ? `store:${c.storeName}` : null) || JSON.stringify(c || {});
           const completeness = (c: any) => Object.values(c || {}).filter(v => v !== null && v !== undefined && String(v).trim() !== '').length;
-          data.forEach((c: Client) => {
+          data.forEach((c: any) => {
             if (!c) return;
             // normalize variant field names returned by API
             const normalized = {
               ...c,
               storeName: c.storeName || c.store_name || c.nom_point_vente || c.company || c.name,
-              ownerName: (c.ownerName || c.owner_name || c.owner || (c.user && (c.user.username || `${c.user.first_name || ''} ${c.user.last_name || ''}`))) ,
+              ownerName: (c.ownerName || c.owner_name || c.owner || (c.user && (c.user.username || `${c.user.first_name || ''} ${c.user.last_name || ''}`))),
               phone: c.phone || c.phone_number || (c.user && c.user.phone_number) || c.contact || '',
               email: c.email || (c.user && c.user.email) || '',
               address: c.address || c.adresse || (c.user && c.user.address) || '',
@@ -61,26 +61,7 @@ function ClientsPage() {
         }
       } catch (e) {
         // fallback to mocks
-        // dedupe mock data as well using same logic
-        const map = new Map<string, Client>();
-        const keyOf = (c: any) => c?.id || c?.email || c?.phone || c?.code || (c?.storeName ? `store:${c.storeName}` : null) || JSON.stringify(c || {});
-        const completeness = (c: any) => Object.values(c || {}).filter(v => v !== null && v !== undefined && String(v).trim() !== '').length;
-        mockClients.forEach((c: Client) => {
-          // ensure mock entry is normalized similarly
-          const normalized = {
-            ...c,
-            storeName: c.storeName || c.store_name || c.nom_point_vente || c.company || c.name,
-            ownerName: c.ownerName || c.owner_name || c.owner || (c.user && (c.user.username || `${c.user.first_name || ''} ${c.user.last_name || ''}`)) || '',
-            phone: c.phone || c.phone_number || (c.user && c.user.phone_number) || c.contact || '',
-            email: c.email || (c.user && c.user.email) || '',
-            address: c.address || c.adresse || (c.user && c.user.address) || '',
-          };
-          const k = keyOf(normalized);
-          const existing = map.get(k);
-          if (!existing) map.set(k, normalized);
-          else if (completeness(normalized) > completeness(existing)) map.set(k, normalized);
-        });
-        setClients(Array.from(map.values()));
+        setClients([]);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -198,7 +179,7 @@ function ClientsPage() {
             Gérez les clients et points de vente
           </p>
         </div>
-        
+
         <button
           onClick={() => setIsAddOpen(true)}
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
@@ -219,7 +200,7 @@ function ClientsPage() {
             // default to CSV export for clients list
             const blob = await reportsService.export('csv');
             const file = new Blob([blob], { type: 'text/csv;charset=utf-8' });
-            saveAs(file, `clients-${new Date().toISOString().slice(0,10)}.csv`);
+            saveAs(file, `clients-${new Date().toISOString().slice(0, 10)}.csv`);
           } catch (err) {
             console.error('export failed', err);
             alert('Impossible d\'exporter les clients.');

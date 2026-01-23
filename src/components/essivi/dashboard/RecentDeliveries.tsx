@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { mockDeliveries } from '@/lib/essivi-mock';
+
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -12,8 +12,8 @@ import usersService from '@/services/users.service';
 
 const statusConfig = {
   pending: { label: 'En attente', class: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
-  in_progress: { label: 'En cours', class: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
-  completed: { label: 'Terminée', class: 'bg-green-500/10 text-green-600 border-green-500/20' },
+  validated: { label: 'Validée', class: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
+  delivered: { label: 'Livrée', class: 'bg-green-500/10 text-green-600 border-green-500/20' },
   cancelled: { label: 'Annulée', class: 'bg-red-500/10 text-red-600 border-red-500/20' },
 };
 
@@ -25,16 +25,27 @@ export function RecentDeliveries() {
     let mounted = true;
     (async () => {
       try {
-        const [livraisonsResp, agentsResp] = await Promise.all([
-          salesService.getLivraisons(),
+        const [commandesResp, agentsResp] = await Promise.all([
+          salesService.getCommandes(),
           usersService.getAgents(),
         ]);
-        if (!mounted) return;
-        if (Array.isArray(livraisonsResp) && livraisonsResp.length > 0) setDeliveries(livraisonsResp);
-        if (Array.isArray(agentsResp) && agentsResp.length > 0) setAgents(agentsResp);
+        if (mounted && Array.isArray(commandesResp)) {
+          // Map Commandes to the UI format
+          const mappedData = commandesResp.map((cmd: any) => ({
+            id: cmd.id,
+            clientName: cmd.client_name || 'Client',
+            agentName: cmd.agent_name || 'En attente',
+            agentId: cmd.agent,
+            amount: parseFloat(cmd.montant),
+            status: cmd.statut,
+            timestamp: cmd.created_at
+          }));
+
+          setDeliveries(mappedData);
+        }
+        if (mounted && Array.isArray(agentsResp)) setAgents(agentsResp);
       } catch (e) {
-        // keep mock data on error
-        setDeliveries(mockDeliveries);
+        setDeliveries([]);
       }
     })();
     return () => { mounted = false };
@@ -69,7 +80,7 @@ export function RecentDeliveries() {
   return (
     <Card className="border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg font-semibold">Livraisons récentes</CardTitle>
+        <CardTitle className="text-lg font-semibold">Commandes récentes</CardTitle>
         <Link href="/deliveries" className="text-sm text-blue-600 hover:underline">
           Voir tout
         </Link>

@@ -3,7 +3,7 @@
 import RequireAuth from '@/components/auth/RequireAuth';
 import { DataTable } from '@/components/essivi/ui/DataTable';
 import { Badge } from '@/components/ui/badge';
-import { mockOrders, Order } from '@/lib/essivi-mock';
+import { Order } from '@/types/legacy_mock_types';
 import { useEffect, useState } from 'react';
 import salesService from '@/services/sales.service';
 import usersService from '@/services/users.service';
@@ -19,17 +19,13 @@ const statusConfig = {
   validated: { label: 'Validée', class: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
   delivered: { label: 'Livrée', class: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
   cancelled: { label: 'Annulée', class: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
-  // Pour compatibilité avec les anciennes données
-  assigned: { label: 'Assignée', class: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
-  in_progress: { label: 'En cours', class: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
-  completed: { label: 'Terminée', class: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
 };
 
 function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [selectedAgentId, setSelectedAgentId] = useState<string>('');
-  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [agents, setAgents] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [assigning, setAssigning] = useState(false);
@@ -91,7 +87,8 @@ function OrdersPage() {
       await salesService.assignAgent(selectedOrder.id, selectedAgentId);
       // Refresh orders list
       const data = await salesService.getCommandes();
-      if (Array.isArray(data)) setOrders(data);
+      const ordersResult = Array.isArray(data) ? data : ((data as any)?.results || []);
+      setOrders(ordersResult);
       setIsAssignOpen(false);
       setSelectedOrder(null);
       setSelectedAgentId('');

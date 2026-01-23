@@ -3,22 +3,22 @@
 import { MapLeaflet } from '@/components/essivi/map/MapLeaflet';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { mockDeliveries } from '@/lib/essivi-mock';
+
 import { useEffect, useState } from 'react';
 import usersService from '@/services/users.service';
 import salesService from '@/services/sales.service';
 import { cn } from '@/lib/utils';
 import {
-    ArrowLeft,
-    Calendar,
-    DollarSign,
-    Edit,
-    Mail,
-    MapPin,
-    Package,
-    Phone,
-    TrendingUp,
-    Truck,
+  ArrowLeft,
+  Calendar,
+  DollarSign,
+  Edit,
+  Mail,
+  MapPin,
+  Package,
+  Phone,
+  TrendingUp,
+  Truck,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
@@ -33,7 +33,7 @@ export default function AgentDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'map' | 'history'>('map');
-  
+
   const id = params.id as string;
   const [agent, setAgent] = useState<any | null>(null);
   const [agentDeliveries, setAgentDeliveries] = useState<any[]>([]);
@@ -80,7 +80,7 @@ export default function AgentDetailsPage() {
                 if (stored) return { ...a, firstname, lastname, phone, email, photoUrl, tricycle, identificationNumber: stored, dateOfHire, totalDeliveries, revenue, lat, lng };
               }
             }
-          } catch (e) {}
+          } catch (e) { }
 
           return { ...a, firstname, lastname, phone, email, photoUrl, tricycle, identificationNumber, dateOfHire, totalDeliveries, revenue, lat, lng };
         };
@@ -90,12 +90,12 @@ export default function AgentDetailsPage() {
         }
 
         if (Array.isArray(livraisonsResp)) {
-          const agentKey = String(agentResp?.id ?? agentResp?.user?.id ?? id);
+          const agentKey = String(agentResp?.id ?? (agentResp?.user as any)?.id ?? id);
           setAgentDeliveries(livraisonsResp.filter((d: any) => String(d.agentId ?? d.agent_id ?? d.agent) === agentKey));
         }
       } catch (e) {
         // fallback to mock
-        setAgentDeliveries(mockDeliveries.filter((d: any) => String(d.agentId ?? d.agent_id ?? d.agent) === String(id)));
+        setAgentDeliveries([]);
       }
     })();
     return () => { mounted = false };
@@ -132,7 +132,7 @@ export default function AgentDetailsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <button 
+        <button
           onClick={() => router.push('/agents')}
           className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
         >
@@ -270,7 +270,7 @@ export default function AgentDetailsPage() {
             </div>
 
             {activeTab === 'map' && (
-              <MapLeaflet 
+              <MapLeaflet
                 center={agent.lat && agent.lng ? [agent.lat, agent.lng] : undefined}
                 zoom={15}
               />

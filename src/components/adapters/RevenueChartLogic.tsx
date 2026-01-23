@@ -3,7 +3,7 @@ import React from "react";
 import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 import ComponentCard from "@/components/common/ComponentCard";
-import { revenueChartData } from "@/lib/essivi-mock";
+
 import { useEffect, useState } from 'react';
 import { dashboardService } from '@/services/dashboard.service';
 import { formatCurrencyXOF } from "@/lib/format";
@@ -24,9 +24,9 @@ export default function RevenueChartLogic() {
         setCategories(rev.map((r: any) => r.month));
         setSeries([{ name: 'Revenus', data: rev.map((r: any) => r.revenue) }]);
       } catch (e) {
-        // fallback to mock data
-        setCategories(revenueChartData.map((d) => d.month));
-        setSeries([{ name: 'Revenus', data: revenueChartData.map((d) => d.revenue) }]);
+        // fallback to empty state
+        setCategories([]);
+        setSeries([]);
       }
     })();
     return () => { mounted = false };

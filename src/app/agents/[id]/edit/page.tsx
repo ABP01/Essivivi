@@ -43,19 +43,20 @@ export default function EditAgentPage() {
       if (!id) return;
       setLoading(true);
       try {
-          // support both numeric id and username in the URL (e.g. /agents/afiyavi/edit)
-          const data = await usersService.getAgentByIdentifier(id);
+        // support both numeric id and username in the URL (e.g. /agents/afiyavi/edit)
+        const data = await usersService.getAgentByIdentifier(id);
         if (!mounted) return;
         // agent payload may nest user info or provide user id only
         const profile = data || {};
         const userObj = (profile.user && typeof profile.user === 'object') ? profile.user : null;
-        const userIdVal = userObj?.id ?? (typeof profile.user === 'number' ? profile.user : null) ?? profile.user_id ?? null;
+        // @ts-ignore - handling backend inconsistency where user might be ID or object
+        const userIdVal = userObj?.id ?? (typeof profile.user === 'number' ? profile.user : null) ?? null;
         setUserId(userIdVal);
 
         const usernameFallback = (userObj?.username || profile.username || (userObj?.email || profile.email || '').split('@')[0] || '').toString();
 
-        const maybeFirst = (userObj && (userObj.first_name || userObj.firstname)) || profile.first_name || profile.firstname || usernameFallback;
-        let maybeLast = (userObj && (userObj.last_name || userObj.lastname)) || profile.last_name || profile.lastname || '';
+        const maybeFirst = (userObj && (userObj.first_name || (userObj as any).firstname)) || profile.first_name || profile.firstname || usernameFallback;
+        let maybeLast = (userObj && (userObj.last_name || (userObj as any).lastname)) || profile.last_name || profile.lastname || '';
         if (!maybeLast && usernameFallback) {
           // derive last name from username if possible
           const uname = usernameFallback;
@@ -84,7 +85,7 @@ export default function EditAgentPage() {
 
                 const targetProfileId = String(profile.id ?? profile.profile_id ?? '');
                 const targetUserId = String(userIdVal ?? '');
-                const targetUsername = String(id || profile.username || profile.user?.username || '');
+                const targetUsername = String(id || profile.username || userObj?.username || '');
 
                 return candidateProfileId === targetProfileId || (candidateUserId && candidateUserId === targetUserId) || (candidateUsername && candidateUsername === targetUsername) || (candidateEmailLocal && candidateEmailLocal === targetUsername);
               });
@@ -100,8 +101,8 @@ export default function EditAgentPage() {
                     if (!maybeLast) setLastname(parts.slice(-1).join(' '));
                   }
                 } else if (match.user && typeof match.user === 'object') {
-                  if (!maybeFirst) setFirstname((match.user.first_name || match.user.firstname || '').toString());
-                  if (!maybeLast) setLastname((match.user.last_name || match.user.lastname || '').toString());
+                  if (!maybeFirst) setFirstname(((match.user as any).first_name || (match.user as any).firstname || '').toString());
+                  if (!maybeLast) setLastname(((match.user as any).last_name || (match.user as any).lastname || '').toString());
                 }
               }
             }
@@ -110,7 +111,7 @@ export default function EditAgentPage() {
           }
         }
         setUserId(userIdVal);
-        const rawPhone = userObj?.phone || userObj?.phone_number || profile.phone || profile.phone_number || '';
+        const rawPhone = (userObj as any)?.phone || userObj?.phone_number || profile.phone || profile.phone_number || '';
         if (rawPhone && rawPhone.startsWith('+')) {
           // assume country codes are 3 digits for our region
           const cc = rawPhone.substring(1, 4);
@@ -123,57 +124,9 @@ export default function EditAgentPage() {
         const usernameKey = userObj?.username || profile.username || (userObj?.email || profile.email || '').split('@')?.[0] || '';
         setIdentificationNumber((profile.identification_number || profile.identificationNumber || '') || (usernameKey ? (localStorage.getItem(`agent_ident_${usernameKey}`) || '') : ''));
       } catch (err: any) {
-          console.error('failed fetch agent', err);
-          // try fallback: cached agent created recently in UI
-          try {
-            if (typeof window !== 'undefined') {
-              const cached = localStorage.getItem(`agent_cache_${id}`);
-              if (cached) {
-                const a = JSON.parse(cached);
-                if (mounted) setAgent(a);
-                if (mounted) setLoading(false);
-                return;
-              }
-            }
-          } catch (e) {
-            // ignore cache parse errors
-          }
-
-          // try fetching by profile id as a fallback
-          try {
-            const byId = await usersService.getAgentById(id);
-            if (byId) {
-              if (mounted) setAgent(byId);
-              if (mounted) setLoading(false);
-              return;
-            }
-          } catch (e) {
-            // ignore
-          }
-
-          // try to resolve from agents list
-          try {
-            const list = await usersService.getAgents();
-            if (Array.isArray(list)) {
-              const found = list.find((it: any) => {
-                const profileId = String(it.id ?? it.profile_id ?? '');
-                const userId = String(it.user?.id ?? it.user_id ?? '');
-                const username = String(it.user?.username ?? it.username ?? it.user_name ?? '');
-                const emailLocal = String((it.user?.email || it.email || '').split('@')[0] || '');
-                return profileId === String(id) || userId === String(id) || username === String(id) || emailLocal === String(id);
-              });
-              if (found) {
-                if (mounted) setAgent(found);
-                if (mounted) setLoading(false);
-                return;
-              }
-            }
-          } catch (e) {
-            // ignore
-          }
-
-          setError('Impossible de charger les données de l\'agent. ' + (err?.message || JSON.stringify(err)));
-          if (mounted) setAgentDeliveries(mockDeliveries.filter((d: any) => String(d.agentId ?? d.agent_id ?? d.agent) === String(id)));
+        console.error('failed fetch agent', err);
+        // try fallback: cached agent created recently in UI
+        setError('Impossible de charger les données de l\'agent. ' + (err?.message || JSON.stringify(err)));
       } finally {
         if (mounted) setLoading(false);
       }
@@ -186,7 +139,7 @@ export default function EditAgentPage() {
     if (!id) return;
     setSaving(true);
     setError(null);
-      try {
+    try {
       const rawDigits = phone.replace(/\D/g, '');
       if (tricyclePlate && !isValidPlate(tricyclePlate)) {
         setError('La plaque tricycle doit respecter le format AB-12-34');

@@ -1,10 +1,10 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { deliveryShareData } from '@/lib/essivi-mock';
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 export function DeliveryDonutChart() {
+  const deliveryShareData: any[] = []; // Empty for now as we remove mock data
   return (
     <Card className="border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
       <CardHeader>

@@ -3,7 +3,7 @@
 import RequireAuth from '@/components/auth/RequireAuth';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { mockDeliveries } from '@/lib/essivi-mock';
+
 import { useEffect, useState } from 'react';
 import salesService from '@/services/sales.service';
 import { Camera, Check, History, MapPin, Play, Plus, Wifi, WifiOff } from 'lucide-react';
@@ -27,8 +27,8 @@ function SyncStatusIndicator({ syncStatus }: { syncStatus: 'synced' | 'pending' 
 function MobileDelivererPage() {
   const [activeTab, setActiveTab] = useState<'start' | 'new' | 'history'>('start');
   const [syncStatus] = useState<'synced' | 'pending' | 'offline'>('synced');
-  const [todayDeliveries, setTodayDeliveries] = useState<typeof mockDeliveries>(mockDeliveries.slice(0,5));
-  const [allDeliveries, setAllDeliveries] = useState<typeof mockDeliveries>(mockDeliveries);
+  const [todayDeliveries, setTodayDeliveries] = useState<any[]>([]);
+  const [allDeliveries, setAllDeliveries] = useState<any[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -38,7 +38,7 @@ function MobileDelivererPage() {
         if (!mounted) return;
         if (Array.isArray(livraisons) && livraisons.length > 0) {
           setAllDeliveries(livraisons);
-          setTodayDeliveries(livraisons.slice(0,5));
+          setTodayDeliveries(livraisons.slice(0, 5));
         }
       } catch (e) {
         // keep mocks
@@ -135,14 +135,13 @@ function MobileDelivererPage() {
           { id: 'new', icon: Plus, label: 'Nouvelle' },
           { id: 'history', icon: History, label: 'Historique' },
         ].map(item => (
-          <button 
-            key={item.id} 
-            onClick={() => setActiveTab(item.id as any)} 
-            className={`flex-1 flex flex-col items-center py-2 rounded-lg transition-colors ${
-              activeTab === item.id 
-                ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30' 
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
+          <button
+            key={item.id}
+            onClick={() => setActiveTab(item.id as any)}
+            className={`flex-1 flex flex-col items-center py-2 rounded-lg transition-colors ${activeTab === item.id
+              ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30'
+              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
           >
             <item.icon className="h-5 w-5" />
             <span className="text-xs mt-1">{item.label}</span>

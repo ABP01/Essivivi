@@ -3,7 +3,7 @@
 import { MapLeaflet } from '@/components/essivi/map/MapLeaflet';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { mockDeliveries } from '@/lib/essivi-mock';
+
 import { useEffect, useState } from 'react';
 import usersService from '@/services/users.service';
 import salesService from '@/services/sales.service';
@@ -32,7 +32,7 @@ export default function ClientDetailsPage() {
         if (Array.isArray(livraisonsResp)) setClientDeliveries(livraisonsResp.filter((d: any) => d.clientId === id));
       } catch (e) {
         // fallback to mock deliveries
-        setClientDeliveries(mockDeliveries.filter((d: any) => d.clientId === id));
+        setClientDeliveries([]);
       }
     })();
     return () => { mounted = false };
@@ -185,7 +185,7 @@ export default function ClientDetailsPage() {
                   <Badge className="text-xs font-medium">{client.type || '—'}</Badge>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{Number.isFinite(latNum) ? latNum.toFixed(4) : '—'}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{Number.isFinite(latNum) ? (latNum as number).toFixed(4) : '—'}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">Latitude</p>
                 </div>
               </div>
@@ -196,7 +196,7 @@ export default function ClientDetailsPage() {
                   <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{Number.isFinite(lngNum) ? lngNum.toFixed(4) : '—'}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{Number.isFinite(lngNum) ? (lngNum as number).toFixed(4) : '—'}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">Longitude</p>
                 </div>
               </div>

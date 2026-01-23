@@ -4,7 +4,7 @@ export const salesService = {
     // Commandes
     async getCommandes() {
         const resp = await api.get('/sales/commandes/');
-        return resp.data;
+        return resp.data && resp.data.results ? resp.data.results : resp.data;
     },
 
     async getCommandesById(id: string) {
@@ -30,7 +30,7 @@ export const salesService = {
     // Livraisons
     async getLivraisons() {
         const resp = await api.get('/sales/livraisons/');
-        return resp.data;
+        return resp.data && resp.data.results ? resp.data.results : resp.data;
     },
 
     async getLivraisonById(id: string) {
@@ -55,7 +55,7 @@ export const salesService = {
     // Notifications
     async getNotifications() {
         const resp = await api.get('/sales/notifications/');
-        return resp.data;
+        return resp.data && resp.data.results ? resp.data.results : resp.data;
     },
 
     async markNotificationAsRead(id: string) {
@@ -71,7 +71,7 @@ export const salesService = {
     // Retours de bouteilles
     async getBottleReturns() {
         const resp = await api.get('/sales/bottle-returns/');
-        return resp.data;
+        return resp.data && resp.data.results ? resp.data.results : resp.data;
     },
 
     async getBottleReturnById(id: string) {
@@ -87,7 +87,7 @@ export const salesService = {
     // Abonnements
     async getSubscriptions() {
         const resp = await api.get('/sales/subscriptions/');
-        return resp.data;
+        return resp.data && resp.data.results ? resp.data.results : resp.data;
     },
 
     async getSubscriptionById(id: string) {
@@ -118,7 +118,7 @@ export const salesService = {
     // FAQs
     async getFAQs() {
         const resp = await api.get('/sales/faqs/');
-        return resp.data;
+        return resp.data && resp.data.results ? resp.data.results : resp.data;
     },
 
     async getFAQById(id: string) {

@@ -6,6 +6,7 @@ import { AgentActivity, DeliveryBarChart, DeliveryDonutChart, KpiCard, RecentDel
 import { MapLeaflet } from '@/components/essivi/map/MapLeaflet';
 import { Clock, DollarSign, ShoppingCart, Star, Truck, UserCircle, Users } from 'lucide-react';
 import { dashboardService, DashboardStats } from '@/services/dashboard.service';
+import { logger } from '@/lib/logger';
 
 function DashboardPage() {
   const router = useRouter();
@@ -26,13 +27,13 @@ function DashboardPage() {
     const fetchStats = async () => {
       try {
         const data = await dashboardService.getStats();
-        console.log('Dashboard stats loaded:', data);
+        logger.debug('Dashboard stats loaded:', data);
         setStats(data);
         setLoading(false);
       } catch (error: any) {
-        console.error('Failed to fetch dashboard stats:', error);
-        console.error('Error response:', error?.response);
-        console.error('Error message:', error?.message);
+        logger.error('Failed to fetch dashboard stats:', error);
+        logger.error('Error response:', error?.response);
+        logger.error('Error message:', error?.message);
 
         const status = error?.response?.status || error?.status || null;
         if (status === 403) {

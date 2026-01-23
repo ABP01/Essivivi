@@ -1,5 +1,3 @@
-"use client";
-import { revenueChartData } from "@/lib/essivi-mock";
 import { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 import ChartTab from "../common/ChartTab";
@@ -22,7 +20,7 @@ const formatCurrency = (value: number) => {
 };
 
 export default function StatisticsChart() {
-  const [chartData, setChartData] = useState<any[]>(revenueChartData);
+  const [chartData, setChartData] = useState<any[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -123,7 +121,7 @@ export default function StatisticsChart() {
       enabled: true,
       shared: true,
       y: {
-        formatter: (val: number, { seriesIndex }: { seriesIndex: number }) => 
+        formatter: (val: number, { seriesIndex }: { seriesIndex: number }) =>
           seriesIndex === 0 ? formatCurrency(val) : `${val} livraisons`,
       },
     },

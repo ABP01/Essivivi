@@ -3,7 +3,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { notifications } from '@/lib/essivi-mock';
 import { cn } from '@/lib/utils';
 import { Bell, Menu, RefreshCw, Search, Wifi, WifiOff } from 'lucide-react';
 import Image from 'next/image';
@@ -20,7 +19,7 @@ export function EssiviHeader({ onMenuClick, showMenuButton = false }: EssiviHead
   const [isSyncing, setIsSyncing] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const unreadCount = notifications.filter(n => !n.read).length;
+
 
   const handleSync = () => {
     setIsSyncing(true);
@@ -28,21 +27,35 @@ export function EssiviHeader({ onMenuClick, showMenuButton = false }: EssiviHead
   };
 
   const [adminName, setAdminName] = useState<string>('Admin User');
+  const [notificationsData, setNotificationsData] = useState<any[]>([]);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const u = await usersService.getCurrentUser();
+        const [u, notfis] = await Promise.all([
+          usersService.getCurrentUser(),
+          // Assuming salesService is imported or available to be imported
+          // We need to import salesService if not present.
+          // Checked file content, it is NOT imported. Only usersService is imported.
+          import('@/services/sales.service').then(m => m.default.getNotifications())
+        ]);
+
         if (!mounted) return;
         const name = (u?.first_name || u?.username || '') + (u?.last_name ? ` ${u.last_name}` : '');
         setAdminName(name || 'Admin User');
+        if (Array.isArray(notfis)) {
+          setNotificationsData(notfis as any[]);
+        }
       } catch (e) {
         // keep default
       }
     })();
     return () => { mounted = false; };
   }, []);
+
+  const notifications = notificationsData;
+  const unreadCount = notifications.filter((n: any) => !n.read).length;
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 lg:px-6">
@@ -90,9 +103,9 @@ export function EssiviHeader({ onMenuClick, showMenuButton = false }: EssiviHead
 
         {/* Notifications */}
         <div className="relative">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="relative"
             onClick={() => setShowNotifications(!showNotifications)}
           >
@@ -140,8 +153,8 @@ export function EssiviHeader({ onMenuClick, showMenuButton = false }: EssiviHead
 
         {/* User Menu */}
         <div className="relative ml-auto">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             className="flex items-center gap-2 px-2"
             onClick={() => setShowUserMenu(!showUserMenu)}
           >

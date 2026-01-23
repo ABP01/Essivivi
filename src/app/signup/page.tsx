@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { authService } from '@/services/auth.service';
+import { logger } from '@/lib/logger';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -19,22 +20,22 @@ export default function SignupPage() {
     setError(null);
     setLoading(true);
     try {
-      console.log('signup: sending', { username, email });
+      logger.info('signup: sending', { username, email });
       const resp = await authService.register(username, email, password);
-      console.log('signup: response', resp);
+      logger.info('signup: response', resp);
       // After successful signup, auto-login and redirect to dashboard
-        try {
+      try {
         await authService.login(username, password);
         router.replace('/dashboard');
         return;
       } catch (loginErr) {
         // If auto-login fails, fallback to redirect to login page
-        console.error('auto-login failed', loginErr);
+        logger.error('auto-login failed', loginErr);
         router.replace('/login');
         return;
       }
     } catch (err: any) {
-      console.error('signup error', err);
+      logger.error('signup error', err);
       const backend = err?.response ? { status: err.response.status, data: err.response.data } : null;
       setError(backend || err?.message || 'Échec de la création du compte');
     } finally {

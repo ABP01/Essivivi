@@ -1,6 +1,6 @@
 "use client";
 import { MoreDotIcon } from "@/icons";
-import { deliveryShareData } from "@/lib/essivi-mock";
+
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
@@ -13,18 +13,18 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
 
 // Product icons/colors mapping
 const productColors: Record<string, { bg: string; text: string; iconBg: string }> = {
-  'Vitale': { 
-    bg: 'bg-blue-500', 
+  'Vitale': {
+    bg: 'bg-blue-500',
     text: 'text-blue-500',
     iconBg: 'bg-blue-100 dark:bg-blue-900/30'
   },
-  'Voltic': { 
-    bg: 'bg-emerald-500', 
+  'Voltic': {
+    bg: 'bg-emerald-500',
     text: 'text-emerald-500',
     iconBg: 'bg-emerald-100 dark:bg-emerald-900/30'
   },
-  'Autres': { 
-    bg: 'bg-amber-500', 
+  'Autres': {
+    bg: 'bg-amber-500',
     text: 'text-amber-500',
     iconBg: 'bg-amber-100 dark:bg-amber-900/30'
   },
@@ -47,7 +47,7 @@ export default function DemographicCard() {
       type: 'donut',
       fontFamily: 'inherit',
     },
-    labels: deliveryShareData.map(d => d.name),
+    labels: [],
     colors: ['#3b82f6', '#10b981', '#f59e0b'],
     legend: {
       show: false,
@@ -96,7 +96,7 @@ export default function DemographicCard() {
     },
   };
 
-  const chartSeries = deliveryShareData.map(d => d.value);
+  const chartSeries: number[] = [];
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">
@@ -134,7 +134,7 @@ export default function DemographicCard() {
           </Dropdown>
         </div>
       </div>
-      
+
       {/* Donut Chart */}
       <div className="flex justify-center py-6 my-4">
         <div className="w-[240px] h-[240px]">
@@ -149,15 +149,15 @@ export default function DemographicCard() {
 
       {/* Product breakdown */}
       <div className="space-y-5">
-        {deliveryShareData.map((product) => {
+        {([] as any[]).map((product) => {
           const colors = productColors[product.name] || productColors['Autres'];
           return (
             <div key={product.name} className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={`flex items-center justify-center w-10 h-10 rounded-full ${colors.iconBg}`}>
-                  <svg 
+                  <svg
                     className={`w-5 h-5 ${colors.text}`}
-                    fill="currentColor" 
+                    fill="currentColor"
                     viewBox="0 0 20 20"
                   >
                     <path fillRule="evenodd" d="M5.5 17a4.5 4.5 0 01-1.44-8.765 4.5 4.5 0 018.302-3.046 3.5 3.5 0 014.504 4.272A4 4 0 0115 17H5.5zm3.75-2.75a.75.75 0 001.5 0V9.66l1.95 2.1a.75.75 0 101.1-1.02l-3.25-3.5a.75.75 0 00-1.1 0l-3.25 3.5a.75.75 0 101.1 1.02l1.95-2.1v4.59z" clipRule="evenodd" />
@@ -175,7 +175,7 @@ export default function DemographicCard() {
 
               <div className="flex w-full max-w-[140px] items-center gap-3">
                 <div className="relative block h-2 w-full max-w-[100px] rounded-sm bg-gray-200 dark:bg-gray-800">
-                  <div 
+                  <div
                     className={`absolute left-0 top-0 flex h-full items-center justify-center rounded-sm ${colors.bg} text-xs font-medium text-white`}
                     style={{ width: `${product.value}%` }}
                   ></div>

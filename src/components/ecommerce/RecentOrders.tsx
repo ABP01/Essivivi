@@ -1,4 +1,4 @@
-import { Delivery, mockDeliveries } from "@/lib/essivi-mock";
+import { Delivery } from "@/types/legacy_mock_types";
 import Image from "next/image";
 import { useEffect, useState } from 'react';
 import salesService from '@/services/sales.service';
@@ -16,8 +16,8 @@ import {
 // Status configuration for deliveries
 const statusConfig: Record<Delivery['status'], { label: string; color: "success" | "warning" | "error" | "primary" }> = {
   pending: { label: 'En attente', color: 'warning' },
-  in_progress: { label: 'En cours', color: 'primary' },
-  completed: { label: 'Terminée', color: 'success' },
+  validated: { label: 'Validée', color: 'primary' },
+  delivered: { label: 'Livrée', color: 'success' },
   cancelled: { label: 'Annulée', color: 'error' },
 };
 
@@ -49,24 +49,32 @@ export default function RecentOrders() {
 
     (async () => {
       try {
-        const [livraisonsResp, agentsResp] = await Promise.all([
-          salesService.getLivraisons(),
+        const [commandesResp, agentsResp] = await Promise.all([
+          salesService.getCommandes(),
           usersService.getAgents(),
         ]);
 
         if (!mounted) return;
 
-        if (Array.isArray(livraisonsResp) && livraisonsResp.length > 0) {
-          setDeliveries(livraisonsResp as Delivery[]);
+        if (mounted && Array.isArray(commandesResp)) {
+          // Map Commandes to Delivery-compatible format for the table
+          const mappedCommandes = commandesResp.map((cmd: any) => ({
+            id: cmd.id,
+            clientName: cmd.client_name || 'Client',
+            clientId: cmd.client,
+            agentId: cmd.agent,
+            amount: parseFloat(cmd.montant),
+            status: cmd.statut,
+            timestamp: cmd.created_at
+          }));
+          setDeliveries(mappedCommandes as Delivery[]);
         }
 
         if (Array.isArray(agentsResp) && agentsResp.length > 0) {
           setAgents(agentsResp as any[]);
         }
       } catch (e) {
-        // keep mock data on error
-        setDeliveries(mockDeliveries);
-        // agents fallback left empty
+        console.error("Failed to load orders", e);
       }
     })();
 
@@ -89,7 +97,7 @@ export default function RecentOrders() {
       <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Livraisons Récentes
+            Commandes Récentes
           </h3>
         </div>
 
