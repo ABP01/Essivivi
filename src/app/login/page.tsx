@@ -11,6 +11,10 @@ export default function LoginPage() {
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
+    // Clear existing tokens to prevent interference
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+
     // apply a page-specific theme to body while this component is mounted
     document.body.classList.add('login-theme');
     return () => {

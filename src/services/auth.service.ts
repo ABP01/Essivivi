@@ -7,8 +7,11 @@ export interface LoginResponse {
 
 export const authService = {
     async login(username: string, password: string): Promise<LoginResponse> {
+        const u = username.trim();
+        const p = password.trim();
         try {
-            const response = await api.post<LoginResponse>('/users/auth/login/', { username, password });
+            console.log('Login attempt:', { u, p });
+            const response = await api.post<LoginResponse>('/users/auth/login/', { username: u, password: p });
             if (response.data.access) {
                 localStorage.setItem('access_token', response.data.access);
                 localStorage.setItem('refresh_token', response.data.refresh);
@@ -69,7 +72,7 @@ export const authService = {
             const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
             const secureFlag = isSecure ? '; Secure' : '';
             document.cookie = `access_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax${secureFlag}`;
-        } catch (e) {}
+        } catch (e) { }
         if (typeof window !== 'undefined') window.location.replace('/login');
     },
 

@@ -14,6 +14,11 @@ const api = axios.create({
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('access_token');
+        // Skip adding auth header for login/signup to prevent 401s from invalid prior tokens
+        if (config.url?.includes('/login') || config.url?.includes('/signup')) {
+            return config;
+        }
+
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
