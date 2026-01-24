@@ -66,7 +66,7 @@ export function EssiviHeader({ onMenuClick, showMenuButton = false }: EssiviHead
       )}
 
       {/* Search */}
-      <div className="flex-1 max-w-md">
+      <div className="w-full max-w-md">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
@@ -77,6 +77,9 @@ export function EssiviHeader({ onMenuClick, showMenuButton = false }: EssiviHead
           />
         </div>
       </div>
+
+      {/* Spacer to push icons to the right */}
+      <div className="flex-1" />
 
       <div className="flex items-center gap-2">
         {/* Sync Status */}
@@ -152,7 +155,7 @@ export function EssiviHeader({ onMenuClick, showMenuButton = false }: EssiviHead
         </div>
 
         {/* User Menu */}
-        <div className="relative ml-auto">
+        <div className="relative">
           <Button
             variant="ghost"
             className="flex items-center gap-2 px-2"
