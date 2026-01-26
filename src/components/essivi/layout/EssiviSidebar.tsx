@@ -4,17 +4,17 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { authService } from '@/services/auth.service';
 import {
-    ChevronLeft,
-    ChevronRight,
-    FileText,
-    LayoutDashboard,
-    LogOut,
-    Map,
-    Settings,
-    ShoppingCart,
-    Truck,
-    UserCircle,
-    Users,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  LayoutDashboard,
+  LogOut,
+  Map,
+  Settings,
+  ShoppingCart,
+  Truck,
+  UserCircle,
+  Users,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -53,12 +53,11 @@ export function EssiviSidebar({ collapsed = false, onToggle }: EssiviSidebarProp
       {/* Logo */}
       <div className="flex h-16 items-center justify-between px-4 border-b border-gray-700">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
-            <img src="/logo/splashlogo.png" alt="Logo" className="h-6 w-6" />
-          </div>
+            <Image src="/logo/logoicon.png" width={42} height={42} alt="Logo" />
+          
           {!collapsed && (
             <div>
-              <h1 className="text-lg font-bold">ESSIVI</h1>
+              <h1 className="text-lg text-white font-bold">ESSIVI</h1>
               <p className="text-xs text-gray-400">Distribution d&apos;eau</p>
             </div>
           )}
