@@ -65,6 +65,18 @@ api.interceptors.response.use(
             localStorage.removeItem('refresh_token');
             return Promise.reject(error);
         }
+
+        // Handle 403 Forbidden errors (invalid tokens, insufficient permissions)
+        if (error.response?.status === 403) {
+            // Clear invalid tokens and redirect to login
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            if (typeof window !== 'undefined') {
+                window.location.href = '/login';
+            }
+            return Promise.reject(error);
+        }
+
         return Promise.reject(error);
     }
 );

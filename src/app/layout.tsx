@@ -4,6 +4,7 @@ import './custom.css';
 
 import { SidebarProvider } from '@/context/SidebarContext';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { AuthProvider } from '@/context/AuthContext';
 import { ConditionalShell } from '@/components/essivi/layout';
 
 const outfit = Outfit({
@@ -21,11 +22,13 @@ export default function RootLayout({
     <html lang="fr" className={`${outfit.variable}`} suppressHydrationWarning>
       <body className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans antialiased">
         <ThemeProvider>
-          <SidebarProvider>
-            <ConditionalShell>
-              {children}
-            </ConditionalShell>
-          </SidebarProvider>
+          <AuthProvider>
+            <SidebarProvider>
+              <ConditionalShell>
+                {children}
+              </ConditionalShell>
+            </SidebarProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

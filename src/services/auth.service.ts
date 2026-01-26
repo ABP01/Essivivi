@@ -48,6 +48,11 @@ export const authService = {
         }
     },
 
+    async getCurrentUser() {
+        const response = await api.get('/users/me/');
+        return response.data;
+    },
+
     async register(username: string, email: string, password: string, role: string = 'client', phoneNumber?: string, extra?: Record<string, any>) {
         const payload: any = { username, email, password, role, ...(extra || {}) };
         if (phoneNumber) payload.phone_number = phoneNumber;

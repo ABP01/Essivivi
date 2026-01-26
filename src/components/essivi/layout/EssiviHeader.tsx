@@ -1,13 +1,14 @@
 "use client";
 
+import { useAuth } from '@/context/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Bell, Menu, RefreshCw, Search, Wifi, WifiOff } from 'lucide-react';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
-import usersService from '@/services/users.service';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 interface EssiviHeaderProps {
   onMenuClick?: () => void;
@@ -15,6 +16,7 @@ interface EssiviHeaderProps {
 }
 
 export function EssiviHeader({ onMenuClick, showMenuButton = false }: EssiviHeaderProps) {
+  const { user, logout } = useAuth();
   const [isOnline, setIsOnline] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -26,24 +28,17 @@ export function EssiviHeader({ onMenuClick, showMenuButton = false }: EssiviHead
     setTimeout(() => setIsSyncing(false), 2000);
   };
 
-  const [adminName, setAdminName] = useState<string>('Admin User');
   const [notificationsData, setNotificationsData] = useState<any[]>([]);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const [u, notfis] = await Promise.all([
-          usersService.getCurrentUser(),
-          // Assuming salesService is imported or available to be imported
-          // We need to import salesService if not present.
-          // Checked file content, it is NOT imported. Only usersService is imported.
-          import('@/services/sales.service').then(m => m.default.getNotifications())
-        ]);
+        // Fetch notifications only
+        // Assuming salesService is imported or available to be imported
+        const notfis = await import('@/services/sales.service').then(m => m.default.getNotifications());
 
         if (!mounted) return;
-        const name = (u?.first_name || u?.username || '') + (u?.last_name ? ` ${u.last_name}` : '');
-        setAdminName(name || 'Admin User');
         if (Array.isArray(notfis)) {
           setNotificationsData(notfis as any[]);
         }
@@ -56,6 +51,13 @@ export function EssiviHeader({ onMenuClick, showMenuButton = false }: EssiviHead
 
   const notifications = notificationsData;
   const unreadCount = notifications.filter((n: any) => !n.read).length;
+
+  const displayName = user ?
+    (user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.username)
+    : 'Chargement...';
+
+  const avatarUrl = user?.profile?.photo || user?.photo || null;
+  const displayRole = user?.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : '';
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 lg:px-6">
@@ -161,18 +163,22 @@ export function EssiviHeader({ onMenuClick, showMenuButton = false }: EssiviHead
             className="flex items-center gap-2 px-2"
             onClick={() => setShowUserMenu(!showUserMenu)}
           >
-            <div className="h-8 w-8 rounded-full overflow-hidden bg-gray-100">
-              <Image
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop"
-                alt="Admin"
-                width={32}
-                height={32}
-                className="object-cover"
-              />
+            <div className="h-8 w-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl.startsWith('http') ? avatarUrl : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000') + avatarUrl}
+                  alt={displayName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-xs font-bold text-gray-500">
+                  {(user?.first_name?.[0] || user?.username?.[0] || 'U').toUpperCase()}
+                </span>
+              )}
             </div>
             <div className="hidden md:block text-left">
-              <p className="text-sm font-medium">{adminName}</p>
-              <p className="text-xs text-gray-500">Super Admin</p>
+              <p className="text-sm font-medium">{displayName}</p>
+              <p className="text-xs text-gray-500">{displayRole}</p>
             </div>
           </Button>
 
@@ -182,15 +188,22 @@ export function EssiviHeader({ onMenuClick, showMenuButton = false }: EssiviHead
                 <p className="text-sm font-medium px-2">Mon compte</p>
               </div>
               <div className="p-1">
-                <button className="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50 dark:hover:bg-gray-700">
-                  Profil
-                </button>
-                <button className="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50 dark:hover:bg-gray-700">
-                  Paramètres
-                </button>
+                <Link href="/profile">
+                  <button className="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50 dark:hover:bg-gray-700">
+                    Profil
+                  </button>
+                </Link>
+                <Link href="/settings">
+                  <button className="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50 dark:hover:bg-gray-700">
+                    Paramètres
+                  </button>
+                </Link>
               </div>
               <div className="p-1 border-t border-gray-200 dark:border-gray-700">
-                <button className="w-full text-left px-3 py-2 text-sm rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+                <button
+                  className="w-full text-left px-3 py-2 text-sm rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  onClick={() => logout()}
+                >
                   Déconnexion
                 </button>
               </div>

@@ -6,7 +6,10 @@ export interface User {
     first_name?: string;
     last_name?: string;
     phone_number?: string;
+    photo?: string;
     // Profiles
+    profile?: any; // Dynamic profile data
+    preferences?: any;
     agent_profile?: AgentProfile;
     client_profile?: ClientProfile;
 }

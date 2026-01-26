@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { authService } from '@/services/auth.service';
+import { useAuth } from '@/context/AuthContext';
 import {
   ChevronLeft,
   ChevronRight,
@@ -38,10 +38,27 @@ interface EssiviSidebarProps {
 
 export function EssiviSidebar({ collapsed = false, onToggle }: EssiviSidebarProps) {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    authService.logout();
+    logout();
   };
+
+  // Helper to get display name and role
+  const displayName = user ?
+    (user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.username)
+    : 'Chargement...';
+
+  const displayRole = user?.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : '';
+
+  // Helper for avatar logic
+  const avatarUrl = user?.profile?.photo ||
+    (user?.profile?.avatar) || // Fallback if backend field name differs
+    null;
+
+  const initials = user?.first_name && user.last_name
+    ? `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
+    : (user?.username?.[0]?.toUpperCase() || 'U');
 
   return (
     <aside
@@ -53,8 +70,8 @@ export function EssiviSidebar({ collapsed = false, onToggle }: EssiviSidebarProp
       {/* Logo */}
       <div className="flex h-16 items-center justify-between px-4 border-b border-gray-700">
         <div className="flex items-center gap-3">
-            <Image src="/logo/logoicon.png" width={42} height={42} alt="Logo" />
-          
+          <Image src="/logo/logoicon.png" width={42} height={42} alt="Logo" />
+
           {!collapsed && (
             <div>
               <h1 className="text-lg text-white font-bold">ESSIVI</h1>
@@ -95,19 +112,21 @@ export function EssiviSidebar({ collapsed = false, onToggle }: EssiviSidebarProp
       {/* User section */}
       <div className="border-t border-gray-700 p-3">
         <div className={cn('flex items-center gap-3', collapsed && 'justify-center')}>
-          <div className="h-9 w-9 rounded-full overflow-hidden bg-gray-700">
-            <Image
-              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop"
-              alt="Admin"
-              width={36}
-              height={36}
-              className="object-cover"
-            />
+          <div className="h-9 w-9 rounded-full overflow-hidden bg-gray-700 flex items-center justify-center shrink-0">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl.startsWith('http') ? avatarUrl : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000') + avatarUrl}
+                alt={displayName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-sm font-medium text-white">{initials}</span>
+            )}
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">Admin User</p>
-              <p className="text-xs text-gray-400 truncate">Super Admin</p>
+              <p className="text-sm font-medium truncate" title={displayName}>{displayName}</p>
+              <p className="text-xs text-gray-400 truncate capitalize">{displayRole}</p>
             </div>
           )}
           {!collapsed && (
