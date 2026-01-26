@@ -11,6 +11,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'https://essivi-backend.onrender.com/api/:path*',
+      },
+    ];
+  },
   // experimental features intentionally left empty
   
 };
