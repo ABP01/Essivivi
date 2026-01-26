@@ -61,9 +61,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
       <Card className="w-full max-w-md p-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl rounded-2xl">
         <div className="text-center mb-6">
-          <div className="mx-auto mb-4 h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-            <img src="/logo/splashlogo.png" alt="Logo" className="h-8 w-8" />
-          </div>
+          <img src="/logo/splashlogo.png" alt="Logo" className="mx-auto mb-4 h-16 w-16" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">ESSIVI-Sarl</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">Système de gestion de distribution d&apos;eau</p>
         </div>
