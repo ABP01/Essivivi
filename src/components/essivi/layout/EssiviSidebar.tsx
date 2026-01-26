@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import {
   ChevronLeft,
   ChevronRight,
-  Droplets,
   FileText,
   LayoutDashboard,
   LogOut,
@@ -55,7 +54,7 @@ export function EssiviSidebar({ collapsed = false, onToggle }: EssiviSidebarProp
       <div className="flex h-16 items-center justify-between px-4 border-b border-gray-700">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
-            <Droplets className="h-6 w-6 text-white" />
+            <img src="/logo/splashlogo.png" alt="Logo" className="h-6 w-6" />
           </div>
           {!collapsed && (
             <div>

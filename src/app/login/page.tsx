@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
-import { Droplets, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { authService } from '@/services/auth.service';
 
 export default function LoginPage() {
@@ -62,7 +62,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md p-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl rounded-2xl">
         <div className="text-center mb-6">
           <div className="mx-auto mb-4 h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-            <Droplets className="h-8 w-8 text-white" />
+            <img src="/logo/splashlogo.png" alt="Logo" className="h-8 w-8" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">ESSIVI-Sarl</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">Système de gestion de distribution d&apos;eau</p>
