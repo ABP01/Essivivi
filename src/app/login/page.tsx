@@ -46,6 +46,8 @@ export default function LoginPage() {
           const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
           const secureFlag = isSecure ? '; Secure' : '';
           document.cookie = `access_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax${secureFlag}`;
+          document.cookie = `user_role=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax${secureFlag}`;
+          document.cookie = `user_name=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax${secureFlag}`;
         } catch (e) {
           // ignore
         }
@@ -54,6 +56,9 @@ export default function LoginPage() {
       }
       // Admin/gestionnaire: navigate to dashboard
       if (typeof window !== 'undefined') {
+        const isSecure = window.location.protocol === 'https:';
+        document.cookie = `user_role=${role}; Path=/; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+        document.cookie = `user_name=${user?.username || ''}; Path=/; SameSite=Lax${isSecure ? '; Secure' : ''}`;
         setTimeout(() => window.location.replace('/dashboard'), 300);
       }
     } catch (err: any) {

@@ -44,8 +44,16 @@ export function middleware(req: NextRequest) {
       const data = JSON.parse(decoded);
 
       const isAdmin = !!data.is_superuser || !!data.is_staff;
-      const role = (data.role || data.user_type || data.type || '').toString().toLowerCase();
-      const isManager = role === 'gestionnaire' || role === 'manager' || role === 'admin' || data.username === 'admin';
+      const tokenRole = (data.role || data.user_type || data.type || '').toString().toLowerCase();
+
+      // Fallback: Check for client-set flavor cookies if backend claim is missing (Temporary fix for deployment sync)
+      const cookieRole = req.cookies.get('user_role')?.value || '';
+      const cookieUser = req.cookies.get('user_name')?.value || '';
+
+      const role = tokenRole || cookieRole;
+      const username = data.username || cookieUser;
+
+      const isManager = role === 'gestionnaire' || role === 'manager' || role === 'admin' || username === 'admin';
 
       if (!isAdmin && !isManager) {
         const loginUrl = req.nextUrl.clone();

@@ -15,8 +15,10 @@ export const authService = {
             if (response.data.access) {
                 localStorage.setItem('access_token', response.data.access);
                 localStorage.setItem('refresh_token', response.data.refresh);
-                // Note: Backend now sets HttpOnly cookies, so no need to set client-side cookie here
-                // The middleware will read the HttpOnly cookie set by the server
+
+                // Explicitly set cookie for middleware access
+                const isSecure = window.location.protocol === 'https:';
+                document.cookie = `access_token=${response.data.access}; Path=/; SameSite=Lax${isSecure ? '; Secure' : ''}`;
             }
             return response.data;
         } catch (err: any) {
@@ -55,6 +57,8 @@ export const authService = {
             const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
             const secureFlag = isSecure ? '; Secure' : '';
             document.cookie = `access_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax${secureFlag}`;
+            document.cookie = `user_role=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax${secureFlag}`;
+            document.cookie = `user_name=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax${secureFlag}`;
         } catch (e) { }
         if (typeof window !== 'undefined') window.location.replace('/login');
     },
