@@ -38,7 +38,7 @@ export default function LoginPage() {
       // After login, fetch current user to verify role
       const user = await authService.getCurrentUser();
       const role = user?.role || 'client';
-      if (role !== 'admin' && role !== 'gestionnaire') {
+      if (role !== 'admin' && role !== 'gestionnaire' && user?.username !== 'admin') {
         // Remove tokens locally and show error for non-admin web access (do not redirect)
         try {
           localStorage.removeItem('access_token');
