@@ -35,10 +35,25 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await authService.login(username, password);
-      // Force a full navigation so the cookie set on the client is sent to the server
-      // and Next middleware can validate the auth state before rendering the dashboard.
+      // After login, fetch current user to verify role
+      const user = await authService.getCurrentUser();
+      const role = user?.role || 'client';
+      if (role !== 'admin' && role !== 'gestionnaire') {
+        // Remove tokens locally and show error for non-admin web access (do not redirect)
+        try {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+          const secureFlag = isSecure ? '; Secure' : '';
+          document.cookie = `access_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax${secureFlag}`;
+        } catch (e) {
+          // ignore
+        }
+        setError('Accès réservé aux administrateurs. Utilisez l\'application mobile.');
+        return;
+      }
+      // Admin/gestionnaire: navigate to dashboard
       if (typeof window !== 'undefined') {
-        // slight delay to ensure cookie is persisted before the navigation
         setTimeout(() => window.location.replace('/dashboard'), 300);
       }
     } catch (err: any) {
@@ -68,10 +83,9 @@ export default function LoginPage() {
 
         {!showForm ? (
           <div className="space-y-4 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-300">Êtes-vous déjà inscrit ?</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300">Veuillez vous connecter avec vos identifiants administrateur.</p>
             <div className="flex justify-center gap-3">
-              <button onClick={() => setShowForm(true)} className="btn-primary">Oui, se connecter</button>
-              <button onClick={() => router.push('/signup')} className="px-4 py-2 border rounded">Non, créer un compte</button>
+              <button onClick={() => setShowForm(true)} className="btn-primary">Se connecter</button>
             </div>
           </div>
         ) : (
