@@ -138,7 +138,7 @@ export default function LoginPage() {
             </button>
 
             <div className="text-center text-sm text-gray-500">
-              <a href="/signup" className="text-primary">Créer un compte</a>
+              {/* <a href="/signup" className="text-primary">Créer un compte</a> */}
             </div>
           </form>
         )}
