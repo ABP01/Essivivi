@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // Ensure NEXT_PUBLIC_API_URL may be provided without the trailing /api
-const _rawBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-const base = _rawBase.endsWith('/api') ? _rawBase : _rawBase.replace(/\/+$/, '') + '/api';
+const _rawBase = process.env.NEXT_PUBLIC_API_URL || '';
+const base = _rawBase ? (_rawBase.endsWith('/api') ? _rawBase : _rawBase.replace(/\/+$/, '') + '/api') : '/api';
 
 const api = axios.create({
     baseURL: base,

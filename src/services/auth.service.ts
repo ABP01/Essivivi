@@ -15,30 +15,8 @@ export const authService = {
             if (response.data.access) {
                 localStorage.setItem('access_token', response.data.access);
                 localStorage.setItem('refresh_token', response.data.refresh);
-                // also set a cookie so Next.js middleware (if added) can read auth state on requests
-                // set SameSite=Lax so cookie is available for top-level navigation while avoiding cross-site issues
-                try {
-                    // Set cookie with sensible attributes:
-                    // - If running over HTTPS, use SameSite=None and Secure so middleware on server receives it in cross-site contexts.
-                    // - On HTTP (localhost dev), use SameSite=Lax to allow top-level navigation.
-                    const expires = new Date(Date.now() + 8 * 60 * 60 * 1000).toUTCString(); // 8 hours
-                    const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
-                    const sameSite = isSecure ? 'None' : 'Lax';
-                    const secureFlag = isSecure ? '; Secure' : '';
-                    // include Domain for localhost/127.0.0.1 to ensure middleware reads it consistently
-                    let domainPart = '';
-                    try {
-                        const host = window.location.hostname;
-                        if (host && (host === 'localhost' || host === '127.0.0.1')) {
-                            domainPart = `; Domain=${host}`;
-                        }
-                    } catch (e) {
-                        // ignore
-                    }
-                    document.cookie = `access_token=${response.data.access}; Path=/; Expires=${expires}; SameSite=${sameSite}${domainPart}${secureFlag}`;
-                } catch (e) {
-                    // ignore (SSR contexts)
-                }
+                // Note: Backend now sets HttpOnly cookies, so no need to set client-side cookie here
+                // The middleware will read the HttpOnly cookie set by the server
             }
             return response.data;
         } catch (err: any) {
