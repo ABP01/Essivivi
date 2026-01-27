@@ -1,10 +1,24 @@
 import api from '@/lib/axios';
 
 export const salesService = {
+    // Cache promises
+    _commandesRequest: null as Promise<any> | null,
+    _notificationsRequest: null as Promise<any> | null,
+
     // Commandes
     async getCommandes() {
-        const resp = await api.get('/sales/commandes/');
-        return resp.data && resp.data.results ? resp.data.results : resp.data;
+        if (this._commandesRequest) return this._commandesRequest;
+
+        this._commandesRequest = (async () => {
+            try {
+                const resp = await api.get('/sales/commandes/');
+                return resp.data && resp.data.results ? resp.data.results : resp.data;
+            } finally {
+                this._commandesRequest = null;
+            }
+        })();
+
+        return this._commandesRequest;
     },
 
     async getCommandesById(id: string) {
@@ -54,8 +68,18 @@ export const salesService = {
 
     // Notifications
     async getNotifications() {
-        const resp = await api.get('/sales/notifications/');
-        return resp.data && resp.data.results ? resp.data.results : resp.data;
+        if (this._notificationsRequest) return this._notificationsRequest;
+
+        this._notificationsRequest = (async () => {
+            try {
+                const resp = await api.get('/sales/notifications/');
+                return resp.data && resp.data.results ? resp.data.results : resp.data;
+            } finally {
+                this._notificationsRequest = null;
+            }
+        })();
+
+        return this._notificationsRequest;
     },
 
     async markNotificationAsRead(id: string) {
@@ -84,10 +108,22 @@ export const salesService = {
         return resp.data;
     },
 
+    _subscriptionsRequest: null as Promise<any> | null,
+
     // Abonnements
     async getSubscriptions() {
-        const resp = await api.get('/sales/subscriptions/');
-        return resp.data && resp.data.results ? resp.data.results : resp.data;
+        if (this._subscriptionsRequest) return this._subscriptionsRequest;
+
+        this._subscriptionsRequest = (async () => {
+            try {
+                const resp = await api.get('/sales/subscriptions/');
+                return resp.data && resp.data.results ? resp.data.results : resp.data;
+            } finally {
+                this._subscriptionsRequest = null;
+            }
+        })();
+
+        return this._subscriptionsRequest;
     },
 
     async getSubscriptionById(id: string) {
@@ -115,10 +151,22 @@ export const salesService = {
         return resp.data;
     },
 
+    _faqsRequest: null as Promise<any> | null,
+
     // FAQs
     async getFAQs() {
-        const resp = await api.get('/sales/faqs/');
-        return resp.data && resp.data.results ? resp.data.results : resp.data;
+        if (this._faqsRequest) return this._faqsRequest;
+
+        this._faqsRequest = (async () => {
+            try {
+                const resp = await api.get('/sales/faqs/');
+                return resp.data && resp.data.results ? resp.data.results : resp.data;
+            } finally {
+                this._faqsRequest = null;
+            }
+        })();
+
+        return this._faqsRequest;
     },
 
     async getFAQById(id: string) {

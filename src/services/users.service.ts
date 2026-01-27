@@ -2,15 +2,37 @@ import api from '@/lib/axios';
 import { AgentProfile, ClientProfile, User } from '@/types/index';
 
 export const usersService = {
+    _agentRequest: null as Promise<AgentProfile[]> | null,
+    _clientRequest: null as Promise<ClientProfile[]> | null,
+
     async getAgents(): Promise<AgentProfile[]> {
-        const resp = await api.get('/users/agents/');
-        // DRF may return paginated { results: [...] } or a raw array
-        return resp.data && resp.data.results ? resp.data.results : resp.data;
+        if (this._agentRequest) return this._agentRequest;
+
+        this._agentRequest = (async () => {
+            try {
+                const resp = await api.get('/users/agents/');
+                return resp.data && resp.data.results ? resp.data.results : resp.data;
+            } finally {
+                this._agentRequest = null;
+            }
+        })();
+
+        return this._agentRequest;
     },
 
     async getClients(): Promise<ClientProfile[]> {
-        const resp = await api.get('/users/clients/');
-        return resp.data && resp.data.results ? resp.data.results : resp.data;
+        if (this._clientRequest) return this._clientRequest;
+
+        this._clientRequest = (async () => {
+            try {
+                const resp = await api.get('/users/clients/');
+                return resp.data && resp.data.results ? resp.data.results : resp.data;
+            } finally {
+                this._clientRequest = null;
+            }
+        })();
+
+        return this._clientRequest;
     },
 
     async getAgentById(id: string): Promise<AgentProfile> {
@@ -127,49 +149,96 @@ export const usersService = {
         throw new Error('Client non trouvé');
     },
 
+    _usersRequest: null as Promise<User[]> | null,
+
     async getUsers(): Promise<User[]> {
-        const resp = await api.get('/users/users/');
-        return resp.data && resp.data.results ? resp.data.results : resp.data;
+        if (this._usersRequest) return this._usersRequest;
+
+        this._usersRequest = (async () => {
+            try {
+                const resp = await api.get('/users/users/');
+                return resp.data && resp.data.results ? resp.data.results : resp.data;
+            } finally {
+                this._usersRequest = null;
+            }
+        })();
+
+        return this._usersRequest;
     },
 
+    _currentUserRequest: null as Promise<User> | null,
+
     async getCurrentUser(): Promise<User> {
-        const resp = await api.get('/users/me/');
-        return resp.data;
+        if (this._currentUserRequest) return this._currentUserRequest;
+
+        this._currentUserRequest = (async () => {
+            try {
+                const resp = await api.get('/users/me/');
+                return resp.data;
+            } finally {
+                this._currentUserRequest = null;
+            }
+        })();
+
+        return this._currentUserRequest;
     },
 
     async deleteAgent(id: string) {
         const resp = await api.delete(`/users/agents/${id}/`);
+        this._agentRequest = null;
+        this._usersRequest = null;
         return resp.data;
     },
 
     async deleteClient(id: string) {
         const resp = await api.delete(`/users/clients/${id}/`);
+        this._clientRequest = null;
+        this._usersRequest = null;
         return resp.data;
     },
 
     async updateAgent(id: string, payload: Partial<AgentProfile>) {
         const resp = await api.patch(`/users/agents/${id}/`, payload);
+        this._agentRequest = null;
+        this._usersRequest = null;
         return resp.data;
     },
 
     async updateUser(id: string | number, payload: Partial<User>) {
         const resp = await api.patch(`/users/users/${id}/`, payload);
+        this._usersRequest = null;
+        this._currentUserRequest = null;
         return resp.data;
     },
 
     async updateClient(id: string, payload: Partial<ClientProfile>) {
         const resp = await api.patch(`/users/clients/${id}/`, payload);
+        this._clientRequest = null;
+        this._usersRequest = null;
         return resp.data;
     },
 
     // Préférences utilisateur
+    _preferencesRequest: null as Promise<any> | null,
+
     async getUserPreferences() {
-        const resp = await api.get('/users/preferences/');
-        return resp.data;
+        if (this._preferencesRequest) return this._preferencesRequest;
+
+        this._preferencesRequest = (async () => {
+            try {
+                const resp = await api.get('/users/preferences/');
+                return resp.data;
+            } finally {
+                this._preferencesRequest = null;
+            }
+        })();
+
+        return this._preferencesRequest;
     },
 
     async updateUserPreferences(data: any) {
         const resp = await api.put('/users/preferences/', data);
+        this._preferencesRequest = null;
         return resp.data;
     },
 

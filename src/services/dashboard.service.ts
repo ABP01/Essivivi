@@ -22,8 +22,20 @@ export interface DashboardStats {
 }
 
 export const dashboardService = {
+    _statsRequest: null as Promise<DashboardStats> | null,
+
     async getStats(): Promise<DashboardStats> {
-        const response = await api.get<DashboardStats>('/dashboard/stats/');
-        return response.data;
+        if (this._statsRequest) return this._statsRequest;
+
+        this._statsRequest = (async () => {
+            try {
+                const response = await api.get<DashboardStats>('/dashboard/stats/');
+                return response.data;
+            } finally {
+                this._statsRequest = null;
+            }
+        })();
+
+        return this._statsRequest;
     }
 };

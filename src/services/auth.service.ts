@@ -28,9 +28,21 @@ export const authService = {
         }
     },
 
+    _currentUserRequest: null as Promise<any> | null,
+
     async getCurrentUser() {
-        const response = await api.get('/users/me/');
-        return response.data;
+        if (this._currentUserRequest) return this._currentUserRequest;
+
+        this._currentUserRequest = (async () => {
+            try {
+                const response = await api.get('/users/me/');
+                return response.data;
+            } finally {
+                this._currentUserRequest = null;
+            }
+        })();
+
+        return this._currentUserRequest;
     },
 
     async register(username: string, email: string, password: string, role: string = 'client', phoneNumber?: string, extra?: Record<string, any>) {

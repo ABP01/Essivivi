@@ -23,7 +23,7 @@ export function DeliveryBarChart({ data }: DeliveryBarChartProps) {
         <CardTitle className="text-lg font-semibold">Livraisons quotidiennes</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px]">
+        <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />

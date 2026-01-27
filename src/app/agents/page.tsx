@@ -1,19 +1,19 @@
 "use client";
 
 import RequireAuth from '@/components/auth/RequireAuth';
+import CreateAgentModal from '@/components/essivi/modals/CreateAgentModal';
 import { DataTable } from '@/components/essivi/ui/DataTable';
 import { Badge } from '@/components/ui/badge';
-import { Agent } from '@/types/legacy_mock_types';
-import { useEffect, useState } from 'react';
-import usersService from '@/services/users.service';
 import { cn } from '@/lib/utils';
+import reportsService from '@/services/reports.service';
+import usersService from '@/services/users.service';
+import { Agent } from '@/types/legacy_mock_types';
 import { ColumnDef } from '@tanstack/react-table';
-import { Edit, Eye, Mail, Phone, Plus, Trash2, Truck, Download } from 'lucide-react';
+import { saveAs } from 'file-saver';
+import { Edit, Eye, Mail, Phone, Plus, Trash2, Truck } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import CreateAgentModal from '@/components/essivi/modals/CreateAgentModal';
-import reportsService from '@/services/reports.service';
-import { saveAs } from 'file-saver';
+import { useEffect, useState } from 'react';
 
 const statusConfig = {
   active: { label: 'Actif', class: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
@@ -91,6 +91,7 @@ function AgentsPage() {
       identificationNumber: identificationNumber || a.identificationNumber || '',
       tricycle,
       totalDeliveries: a.totalDeliveries ?? a.total_deliveries ?? a.deliveries ?? 0,
+      revenue: a.revenue ?? 0,
     };
   };
 
