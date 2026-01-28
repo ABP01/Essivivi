@@ -173,14 +173,14 @@ export default function EditAgentPage() {
 
   return (
     <div className="max-w-2xl mx-auto py-8">
-      <h2 className="text-2xl font-bold mb-4">Modifier l'agent</h2>
+      <h2 className="text-2xl font-bold mb-4">Modifier l&apos;agent</h2>
       {loading ? (
         <div>Chargement...</div>
       ) : (
         <div className="space-y-4">
           {error && <div className="text-sm text-red-500">{error}</div>}
           <div>
-            <label className="block text-sm mb-1">N° d'identification</label>
+            <label className="block text-sm mb-1">N° d&apos;identification</label>
             <Input value={identificationNumber || ''} readOnly />
           </div>
           <div>
@@ -197,7 +197,7 @@ export default function EditAgentPage() {
               <select className="border rounded px-2 py-2" value={countryCode} onChange={e => setCountryCode(e.target.value)}>
                 <option value="228">Togo (+228)</option>
                 <option value="229">Bénin (+229)</option>
-                <option value="225">Côte d'Ivoire (+225)</option>
+                <option value="225">Côte d&apos;Ivoire (+225)</option>
                 <option value="221">Sénégal (+221)</option>
                 <option value="223">Mali (+223)</option>
               </select>

@@ -26,8 +26,11 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
+
 export default function MonthlyTarget() {
   const [satisfactionPercent, setSatisfactionPercent] = useState<number>(initialSatisfaction);
+  const [kpis, setKpis] = useState<any | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -44,9 +47,10 @@ export default function MonthlyTarget() {
       }
     })();
     return () => { mounted = false };
-  }, []);
+  }, []); // kpis dependency is not needed as setKpis is stable
 
   const series = [satisfactionPercent];
+
   const options: ApexOptions = {
     colors: ["#465FFF"],
     chart: {
@@ -95,8 +99,7 @@ export default function MonthlyTarget() {
     labels: ["Satisfaction"],
   };
 
-  const [isOpen, setIsOpen] = useState(false);
-  const [kpis, setKpis] = useState<any | null>(null);
+
 
   function toggleDropdown() {
     setIsOpen(!isOpen);

@@ -141,7 +141,7 @@ export default function CreateAgentModal({ open, onOpenChange, onCreated }: Prop
         <div className="space-y-3">
           {error && <div className="text-sm text-red-500">{typeof error === 'string' ? error : JSON.stringify(error)}</div>}
           <div>
-            <label className="block text-sm mb-1">Nom d'utilisateur</label>
+            <label className="block text-sm mb-1">Nom d&apos;utilisateur</label>
             <Input value={username} onChange={e => setUsername(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -168,7 +168,7 @@ export default function CreateAgentModal({ open, onOpenChange, onCreated }: Prop
               <select className="border rounded px-2 py-2" value={countryCode} onChange={e => setCountryCode(e.target.value)}>
                 <option value="228">Togo (+228)</option>
                 <option value="229">Bénin (+229)</option>
-                <option value="225">Côte d'Ivoire (+225)</option>
+                <option value="225">Côte d&apos;Ivoire (+225)</option>
                 <option value="221">Sénégal (+221)</option>
                 <option value="223">Mali (+223)</option>
               </select>
@@ -178,16 +178,16 @@ export default function CreateAgentModal({ open, onOpenChange, onCreated }: Prop
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm mb-1">N° d'identification (généré)</label>
+              <label className="block text-sm mb-1">N° d&apos;identification (généré)</label>
               <Input value={identificationNumber} readOnly />
             </div>
-              <div>
-                <label className="block text-sm mb-1">Plaque tricycle (format: AB-1234)</label>
-                <Input value={tricyclePlate} onChange={e => setTricyclePlate(formatPlate(e.target.value))} />
-                {!isValidPlate(tricyclePlate) && tricyclePlate.length > 0 && (
-                  <p className="text-xs text-red-500 mt-1">Format attendu : deux lettres, tiret, quatre chiffres (ex. AB-1234)</p>
-                )}
-              </div>
+            <div>
+              <label className="block text-sm mb-1">Plaque tricycle (format: AB-1234)</label>
+              <Input value={tricyclePlate} onChange={e => setTricyclePlate(formatPlate(e.target.value))} />
+              {!isValidPlate(tricyclePlate) && tricyclePlate.length > 0 && (
+                <p className="text-xs text-red-500 mt-1">Format attendu : deux lettres, tiret, quatre chiffres (ex. AB-1234)</p>
+              )}
+            </div>
           </div>
         </div>
 

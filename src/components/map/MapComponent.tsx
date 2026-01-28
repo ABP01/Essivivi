@@ -1,13 +1,13 @@
 "use client";
 
 import { Card } from '@/components/ui/card';
+import logisticsService from '@/services/logistics.service';
+import salesService from '@/services/sales.service';
+import usersService from '@/services/users.service';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { Layers, Store, Truck, Users } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import usersService from '@/services/users.service';
-import salesService from '@/services/sales.service';
-import logisticsService from '@/services/logistics.service';
-import 'leaflet/dist/leaflet.css';
 
 // Fix for default markers
 if (typeof window !== 'undefined') {

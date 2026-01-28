@@ -96,7 +96,7 @@ export default function CreateClientModal({ open, onOpenChange, onCreated }: Pro
         <div className="space-y-3">
           {error && <div className="text-sm text-red-500">{typeof error === 'string' ? error : JSON.stringify(error)}</div>}
           <div>
-            <label className="block text-sm mb-1">Nom d'utilisateur</label>
+            <label className="block text-sm mb-1">Nom d&apos;utilisateur</label>
             <Input value={username} onChange={e => setUsername(e.target.value)} />
           </div>
           <div>

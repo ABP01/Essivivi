@@ -153,7 +153,7 @@ export function ProductForm({ product, onSave, trigger }: ProductFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="image_url">URL de l'image</Label>
+              <Label htmlFor="image_url">URL de l&apos;image</Label>
               <Input
                 id="image_url"
                 value={formData.image_url}
