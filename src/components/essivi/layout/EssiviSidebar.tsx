@@ -1,20 +1,21 @@
 "use client";
 
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
+import { cn } from '@/lib/utils';
 import {
-  ChevronLeft,
-  ChevronRight,
-  FileText,
-  LayoutDashboard,
-  LogOut,
-  Map,
-  Settings,
-  ShoppingCart,
-  Truck,
-  UserCircle,
-  Users,
+    ChevronLeft,
+    ChevronRight,
+    FileText,
+    LayoutDashboard,
+    LogOut,
+    Map,
+    Package,
+    Settings,
+    ShoppingCart,
+    Truck,
+    UserCircle,
+    Users,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -22,6 +23,7 @@ import { usePathname } from 'next/navigation';
 
 const navItems = [
   { path: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
+  { path: '/products', label: 'Produits', icon: Package },
   { path: '/agents', label: 'Agents', icon: Users },
   { path: '/clients', label: 'Clients', icon: UserCircle },
   { path: '/deliveries', label: 'Livraisons', icon: Truck },

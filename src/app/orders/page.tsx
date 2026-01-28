@@ -3,16 +3,16 @@
 import RequireAuth from '@/components/auth/RequireAuth';
 import { DataTable } from '@/components/essivi/ui/DataTable';
 import { Badge } from '@/components/ui/badge';
-import { Order } from '@/types/legacy_mock_types';
-import { useEffect, useState } from 'react';
-import salesService from '@/services/sales.service';
-import usersService from '@/services/users.service';
 import { cn } from '@/lib/utils';
 import reportsService from '@/services/reports.service';
-import { saveAs } from 'file-saver';
+import salesService from '@/services/sales.service';
+import usersService from '@/services/users.service';
+import { Order } from '@/types/legacy_mock_types';
 import { ColumnDef } from '@tanstack/react-table';
+import { saveAs } from 'file-saver';
 import { Clock, Package, UserPlus } from 'lucide-react';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 
 const statusConfig = {
   pending: { label: 'En attente', class: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
@@ -120,6 +120,21 @@ function OrdersPage() {
       header: 'Produit / Quantité',
       cell: ({ row }) => {
         const order = row.original;
+        const items = order.items;
+        if (items && items.length > 0) {
+          const totalQuantity = items.reduce((sum, item) => sum + item.quantity * item.product_quantity_per_unit, 0);
+          const productNames = items.map(item => `${item.quantity}x ${item.product_name}`).join(', ');
+          return (
+            <div className="flex items-center gap-2">
+              <Package className="h-4 w-4 text-gray-400" />
+              <div>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">{totalQuantity} unités</span>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{productNames}</p>
+              </div>
+            </div>
+          );
+        }
+        // Fallback to old structure
         const q = order.quantity;
         if (q) {
           const total = (q.vitale || 0) + (q.voltic || 0) + (q.other || 0);

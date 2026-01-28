@@ -54,6 +54,19 @@ export interface Delivery {
     status: 'pending' | 'validated' | 'delivered' | 'cancelled';
 }
 
+export interface OrderItem {
+    id: number;
+    commande: number;
+    product: number;
+    product_name: string;
+    product_category: string;
+    product_unit: string;
+    product_quantity_per_unit: number;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+}
+
 export interface Order {
     id: string;
     client: number | string;
@@ -68,6 +81,7 @@ export interface Order {
         voltic: number;
         other: number;
     };
+    items?: OrderItem[]; // New field for order items
     statut: 'pending' | 'validated' | 'delivered' | 'cancelled';
     status?: string; // Compatibilité UI
     agent?: number | string;

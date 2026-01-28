@@ -173,6 +173,32 @@ export const salesService = {
         const resp = await api.get(`/sales/faqs/${id}/`);
         return resp.data;
     },
+
+    // Products
+    async getProducts() {
+        const resp = await api.get('/sales/products/');
+        return resp.data && resp.data.results ? resp.data.results : resp.data;
+    },
+
+    async getProductById(id: number) {
+        const resp = await api.get(`/sales/products/${id}/`);
+        return resp.data;
+    },
+
+    async createProduct(data: any) {
+        const resp = await api.post('/sales/products/', data);
+        return resp.data;
+    },
+
+    async updateProduct(id: number, data: any) {
+        const resp = await api.patch(`/sales/products/${id}/`, data);
+        return resp.data;
+    },
+
+    async deleteProduct(id: number) {
+        const resp = await api.delete(`/sales/products/${id}/`);
+        return resp.data;
+    },
 };
 
 export default salesService;

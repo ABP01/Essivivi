@@ -143,15 +143,17 @@ export default function MapComponent() {
                     iconAnchor: [14, 14],
                 });
 
-                L.marker([client.lat, client.lng], { icon: clientIcon })
-                    .addTo(map)
-                    .bindPopup(`
+                if (client.gps_lat && client.gps_lng) {
+                    L.marker([client.gps_lat, client.gps_lng], { icon: clientIcon })
+                        .addTo(map)
+                        .bindPopup(`
             <div style="min-width: 150px;">
-              <strong>${client.storeName}</strong><br/>
-              <span style="color: #666; font-size: 12px;">${client.ownerName}</span><br/>
-              <span style="color: #666; font-size: 12px;">${client.phone}</span>
+              <strong>${client.nom_point_vente}</strong><br/>
+              <span style="color: #666; font-size: 12px;">${client.nom_proprietaire || '—'}</span><br/>
+              <span style="color: #666; font-size: 12px;">Solde: ${client.solde} FCFA</span>
             </div>
           `);
+                }
             });
         }
 
